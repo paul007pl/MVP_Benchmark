@@ -8,9 +8,11 @@ import torch.nn.functional as F
 from utils.model_utils import *
 from models.pcn import PCN_encoder
 
-proj_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-sys.path.append(os.path.join(proj_dir, "utils/Pointnet2.PyTorch/pointnet2"))
-import pointnet2_utils as pn2
+# proj_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+# sys.path.append(os.path.join(proj_dir, "utils/Pointnet2.PyTorch/pointnet2"))
+# import pointnet2_utils as pn2
+
+from utils.mm3d_pn2 import three_interpolate, furthest_point_sample, gather_points, grouping_operation
 
 
 class Stack_conv(nn.Module):
@@ -137,17 +139,17 @@ class EF_encoder(nn.Module):
         x4 = torch.cat((global_feat, x4), 1)
         x4 = F.relu(self.conv5(x4))
         idx, weight = three_nn_upsampling(point_cloud3, point_cloud4)
-        x4 = pn2.three_interpolate(x4, idx, weight)
+        x4 = three_interpolate(x4, idx, weight)
 
         x3 = torch.cat((x3, x4), 1)
         x3 = F.relu(self.conv6(x3))
         idx, weight = three_nn_upsampling(point_cloud2, point_cloud3)
-        x3 = pn2.three_interpolate(x3, idx, weight)
+        x3 = three_interpolate(x3, idx, weight)
 
         x2 = torch.cat((x2, x3), 1)
         x2 = F.relu(self.conv7(x2))
         idx, weight = three_nn_upsampling(point_cloud1, point_cloud2)
-        x2 = pn2.three_interpolate(x2, idx, weight)
+        x2 = three_interpolate(x2, idx, weight)
 
         x1 = torch.cat((x1, x2), 1)
         x1 = self.conv8(x1)
@@ -200,8 +202,7 @@ class ECG_decoder(nn.Module):
 
         num_out = fine.size()[2]
         if num_out > self.num_fine:
-            fine = pn2.gather_operation(fine,
-                                        pn2.furthest_point_sample(fine.transpose(1, 2).contiguous(), self.num_fine))
+            fine = gather_points(fine, furthest_point_sample(fine.transpose(1, 2).contiguous(), self.num_fine))
 
         return coarse, fine
 

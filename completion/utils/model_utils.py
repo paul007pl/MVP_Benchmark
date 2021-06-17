@@ -205,7 +205,7 @@ def get_uniform_loss(pcd, percentages=[0.004, 0.006, 0.008, 0.010, 0.012], radiu
         disk_area = math.pi * (radius ** 2) * p/nsample
         new_xyz = gather_points(pcd.transpose(1, 2).contiguous(),
                                        furthest_point_sample(pcd, npoint)).transpose(1, 2).contiguous()
-        idx = ball_query(r, nsample, pcd, new_xyz)
+        idx = ball_query(0, r, nsample, pcd, new_xyz)
         expect_len = math.sqrt(disk_area)
 
         grouped_pcd = grouping_operation(pcd.transpose(1,2).contiguous(), idx)
