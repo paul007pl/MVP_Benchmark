@@ -1,0 +1,21 @@
+Metadata-Version: 2.1
+Name: mmdet3d
+Version: 0.14.0
+Summary: OpenMMLab's next-generation platformfor general 3D object detection.
+Home-page: https://github.com/open-mmlab/mmdetection3d
+Author: OpenMMLab
+Author-email: zwwdev@gmail.com
+License: Apache License 2.0
+Description: UNKNOWN
+Keywords: computer vision,3D object detection
+Platform: UNKNOWN
+Classifier: Development Status :: 4 - Beta
+Classifier: License :: OSI Approved :: Apache Software License
+Classifier: Operating System :: OS Independent
+Classifier: Programming Language :: Python :: 3
+Classifier: Programming Language :: Python :: 3.6
+Classifier: Programming Language :: Python :: 3.7
+Provides-Extra: all
+Provides-Extra: tests
+Provides-Extra: build
+Provides-Extra: optional
