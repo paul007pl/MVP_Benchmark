@@ -23,9 +23,18 @@ import numpy as np
 import torch
 from torch import nn
 from torch.autograd import Function
-import emd
 
+import os
+# import importlib
+# import emd
 
+from torch.utils.cpp_extension import load
+emd = load(name="emd",
+        sources=[
+            "/".join(os.path.abspath(__file__).split('/')[:-1] + ["emd.cpp"]),
+            "/".join(os.path.abspath(__file__).split('/')[:-1] + ["emd_cuda.cu"]),
+            ])
+print("Loaded JIT 3D CUDA emd")
 
 
 class emdFunction(Function):
@@ -94,6 +103,6 @@ def test_emd():
     d = (x1 - x2) * (x1 - x2)
     print("Verified EMD: %lf" % np.sqrt(d.cpu().sum(-1)).mean())
 
-#test_emd()
+# test_emd()
     
        

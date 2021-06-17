@@ -7,9 +7,11 @@ import torch.nn.functional as F
 from utils.model_utils import *
 from models.pcn import PCN_encoder
 
-proj_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-sys.path.append(os.path.join(proj_dir, "utils/Pointnet2.PyTorch/pointnet2"))
-import pointnet2_utils as pn2
+# proj_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+# sys.path.append(os.path.join(proj_dir, "utils/Pointnet2.PyTorch/pointnet2"))
+# import pointnet2_utils as pn2
+
+from utils.mm3d_pn2 import three_interpolate, furthest_point_sample, gather_points, grouping_operation
 
 
 class SA_module(nn.Module):
@@ -227,7 +229,7 @@ class SA_SKN_Res_encoder(nn.Module):
     def _edge_unpooling(self, features, src_pts, tgt_pts):
         features = features.squeeze(2)
         idx, weight = three_nn_upsampling(tgt_pts, src_pts)
-        features = pn2.three_interpolate(features, idx, weight)
+        features = three_interpolate(features, idx, weight)
         features = features.unsqueeze(2)
         return features
 
@@ -372,17 +374,17 @@ class MSAP_SKN_decoder(nn.Module):
         coarse_high = self.conv_cup2(coarse_features)
 
         if coarse_high.size()[2] > self.num_fps:
-            idx_fps = pn2.furthest_point_sample(coarse_high.transpose(1, 2).contiguous(), self.num_fps)
-            coarse_fps = pn2.gather_operation(coarse_high, idx_fps)
-            coarse_features = pn2.gather_operation(coarse_features, idx_fps)
+            idx_fps = furthest_point_sample(coarse_high.transpose(1, 2).contiguous(), self.num_fps)
+            coarse_fps = gather_points(coarse_high, idx_fps)
+            coarse_features = gather_points(coarse_features, idx_fps)
         else:
             coarse_fps = coarse_high
 
         if coarse_fps.size()[2] > self.num_coarse:
             scores = F.softplus(self.conv_s3(self.af(self.conv_s2(self.af(self.conv_s1(coarse_features))))))
             idx_scores = scores.topk(k=self.num_coarse, dim=2)[1].view(batch_size, -1).int()
-            coarse = pn2.gather_operation(coarse_fps, idx_scores)
-            coarse_features = pn2.gather_operation(coarse_features, idx_scores)
+            coarse = gather_points(coarse_fps, idx_scores)
+            coarse_features = gather_points(coarse_features, idx_scores)
         else:
             coarse = coarse_fps
 
@@ -441,7 +443,7 @@ class Model(nn.Module):
         num_input = x.size()[2]
 
         if is_training:
-            y = pn2.gather_operation(gt.transpose(1, 2).contiguous(), pn2.furthest_point_sample(gt, num_input))
+            y = gather_points(gt.transpose(1, 2).contiguous(), furthest_point_sample(gt, num_input))
             gt = torch.cat([gt, gt], dim=0)
             points = torch.cat([x, y], dim=0)
             x = torch.cat([x, x], dim=0)

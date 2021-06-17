@@ -7,14 +7,17 @@ import torch.nn.functional as F
 
 
 
-proj_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-sys.path.append(os.path.join(proj_dir, "utils/Pointnet2.PyTorch/pointnet2"))
-import pointnet2_utils as pn2
-sys.path.append(os.path.join(proj_dir, "utils/emd"))
-import emd_module as emd
-sys.path.append(os.path.join(proj_dir, "utils/ChamferDistancePytorch"))
-from chamfer3D import dist_chamfer_3D
-from fscore import fscore
+# proj_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+# sys.path.append(os.path.join(proj_dir, "utils/Pointnet2.PyTorch/pointnet2"))
+# import pointnet2_utils as pn2
+# sys.path.append(os.path.join(proj_dir, "utils/emd"))
+# import emd_module as emd
+# sys.path.append(os.path.join(proj_dir, "utils/ChamferDistancePytorch"))
+# from chamfer3D import dist_chamfer_3D
+# from fscore import fscore
+
+from .metrics import cd, fscore, emd
+from .mm3d_pn2 import furthest_point_sample, gather_points, grouping_operation, ball_query, three_nn
 
 
 class EF_expansion(nn.Module):
@@ -59,7 +62,8 @@ def attention(query, key, value, mask=None):
 
 
 def calc_cd(output, gt, calc_f1=False):
-    cham_loss = dist_chamfer_3D.chamfer_3DDist()
+    # cham_loss = dist_chamfer_3D.chamfer_3DDist()
+    cham_loss = cd()
     dist1, dist2, _, _ = cham_loss(gt, output)
     cd_p = (torch.sqrt(dist1).mean(1) + torch.sqrt(dist2).mean(1)) / 2
     cd_t = (dist1.mean(1) + dist2.mean(1))
@@ -71,7 +75,8 @@ def calc_cd(output, gt, calc_f1=False):
 
 
 def calc_emd(output, gt, eps=0.005, iterations=50):
-    emd_loss = emd.emdModule()
+    # emd_loss = emd.emdModule()
+    emd_loss = emd()
     dist, _ = emd_loss(output, gt, eps, iterations)
     emd_out = torch.sqrt(dist).mean(1)
     return emd_out
@@ -82,20 +87,20 @@ def edge_preserve_sampling(feature_input, point_input, num_samples, k=10):
     feature_size = feature_input.size()[1]
     num_points = feature_input.size()[2]
 
-    p_idx = pn2.furthest_point_sample(point_input, num_samples)
-    point_output = pn2.gather_operation(point_input.transpose(1, 2).contiguous(), p_idx).transpose(1,
+    p_idx = furthest_point_sample(point_input, num_samples)
+    point_output = gather_points(point_input.transpose(1, 2).contiguous(), p_idx).transpose(1,
                                                                                                    2).contiguous()
 
     pk = int(min(k, num_points))
     _, pn_idx = knn_point(pk, point_input, point_output)
     pn_idx = pn_idx.detach().int()
-    neighbor_feature = pn2.gather_operation(feature_input, pn_idx.view(batch_size, num_samples * pk)).view(batch_size,
+    neighbor_feature = gather_points(feature_input, pn_idx.view(batch_size, num_samples * pk)).view(batch_size,
                                                                                                            feature_size,
                                                                                                            num_samples,
                                                                                                            pk)
     neighbor_feature, _ = torch.max(neighbor_feature, 3)
 
-    center_feature = pn2.grouping_operation(feature_input, p_idx.unsqueeze(2)).view(batch_size, -1, num_samples)
+    center_feature = grouping_operation(feature_input, p_idx.unsqueeze(2)).view(batch_size, -1, num_samples)
 
     net = torch.cat((center_feature, neighbor_feature), 1)
 
@@ -175,7 +180,7 @@ def get_repulsion_loss(pred, nsample=20, radius=0.07):
     # idx = pn2.ball_query(radius, nsample, pred, pred)
     idx = knn(pred.transpose(1, 2).contiguous(), nsample).int()
     pred_flipped = pred.transpose(1, 2).contiguous()
-    grouped_pred = pn2.grouping_operation(pred_flipped, idx)  # (B, C, npoint, nsample)
+    grouped_pred = grouping_operation(pred_flipped, idx)  # (B, C, npoint, nsample)
     grouped_pred -= pred_flipped.unsqueeze(-1)
 
     # get the uniform loss
@@ -198,12 +203,12 @@ def get_uniform_loss(pcd, percentages=[0.004, 0.006, 0.008, 0.010, 0.012], radiu
         nsample = int(N*p)
         r = math.sqrt(p*radius)
         disk_area = math.pi * (radius ** 2) * p/nsample
-        new_xyz = pn2.gather_operation(pcd.transpose(1, 2).contiguous(),
-                                       pn2.furthest_point_sample(pcd, npoint)).transpose(1, 2).contiguous()
-        idx = pn2.ball_query(r, nsample, pcd, new_xyz)
+        new_xyz = gather_points(pcd.transpose(1, 2).contiguous(),
+                                       furthest_point_sample(pcd, npoint)).transpose(1, 2).contiguous()
+        idx = ball_query(r, nsample, pcd, new_xyz)
         expect_len = math.sqrt(disk_area)
 
-        grouped_pcd = pn2.grouping_operation(pcd.transpose(1,2).contiguous(), idx)
+        grouped_pcd = grouping_operation(pcd.transpose(1,2).contiguous(), idx)
         grouped_pcd = grouped_pcd.permute(0, 2, 3, 1).contiguous().view(-1, nsample, 3)
 
         var, _ = knn_point(2, grouped_pcd, grouped_pcd)
@@ -265,8 +270,8 @@ def knn_point_all(pk, point_input, point_output):
 
 
 def symmetric_sample(points, num=512):
-    p1_idx = pn2.furthest_point_sample(points, num)
-    input_fps = pn2.gather_operation(points.transpose(1, 2).contiguous(), p1_idx).transpose(1, 2).contiguous()
+    p1_idx = furthest_point_sample(points, num)
+    input_fps = gather_points(points.transpose(1, 2).contiguous(), p1_idx).transpose(1, 2).contiguous()
     x = torch.unsqueeze(input_fps[:, :, 0], dim=2)
     y = torch.unsqueeze(input_fps[:, :, 1], dim=2)
     z = torch.unsqueeze(-input_fps[:, :, 2], dim=2)
@@ -276,7 +281,7 @@ def symmetric_sample(points, num=512):
 
 
 def three_nn_upsampling(target_points, source_points):
-    dist, idx = pn2.three_nn(target_points, source_points)
+    dist, idx = three_nn(target_points, source_points)
     dist = torch.max(dist, torch.ones(1).cuda() * 1e-10)
     norm = torch.sum((1.0 / dist), 2, keepdim=True)
     norm = norm.repeat(1, 1, 3)

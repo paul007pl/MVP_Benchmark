@@ -9,7 +9,7 @@ tensorboard
 trimesh<2.35.40,>=2.35.39
 
 [all]
-open3d
+open3d==0.9.0
 waymo-open-dataset-tf-2-1-0==1.2.0
 lyft_dataset_sdk
 networkx<2.3,>=2.2
@@ -36,7 +36,7 @@ yapf
 [build]
 
 [optional]
-open3d
+open3d==0.9.0
 waymo-open-dataset-tf-2-1-0==1.2.0
 
 [tests]
