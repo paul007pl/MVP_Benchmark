@@ -18,8 +18,8 @@ rule cuda_compile
 
 
 
-build /mnt/lustre/lpan/workspaces/MVP_Benchmark/completion/utils/mm3d_pn2/build/temp.linux-x86_64-3.7/ops/gather_points/src/gather_points.o: compile /mnt/lustre/lpan/workspaces/MVP_Benchmark/completion/utils/mm3d_pn2/ops/gather_points/src/gather_points.cpp
-build /mnt/lustre/lpan/workspaces/MVP_Benchmark/completion/utils/mm3d_pn2/build/temp.linux-x86_64-3.7/ops/gather_points/src/gather_points_cuda.o: cuda_compile /mnt/lustre/lpan/workspaces/MVP_Benchmark/completion/utils/mm3d_pn2/ops/gather_points/src/gather_points_cuda.cu
+build /mnt/lustre/lpan/workspaces/MVP_Benchmark/utils/mm3d_pn2/build/temp.linux-x86_64-3.7/ops/gather_points/src/gather_points.o: compile /mnt/lustre/lpan/workspaces/MVP_Benchmark/utils/mm3d_pn2/ops/gather_points/src/gather_points.cpp
+build /mnt/lustre/lpan/workspaces/MVP_Benchmark/utils/mm3d_pn2/build/temp.linux-x86_64-3.7/ops/gather_points/src/gather_points_cuda.o: cuda_compile /mnt/lustre/lpan/workspaces/MVP_Benchmark/utils/mm3d_pn2/ops/gather_points/src/gather_points_cuda.cu
 
 
 
