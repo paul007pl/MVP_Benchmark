@@ -244,7 +244,7 @@ class Model(nn.Module):
                                (loss2.mean() + uniform_loss2.mean() * 0.1) * alpha
             return out2, loss2, total_train_loss
         else:
-            if eval_emd:
+            if self.eval_emd:
                 emd = calc_emd(out2, gt, eps=0.004, iterations=3000)
             else:
                 emd = 0
