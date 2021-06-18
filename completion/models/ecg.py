@@ -5,15 +5,18 @@ import torch.nn as nn
 import torch.nn.parallel
 import torch.utils.data
 import torch.nn.functional as F
-from utils.model_utils import *
+# from utils.model_utils import *
+from model_utils import *
 from models.pcn import PCN_encoder
 
 # proj_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 # sys.path.append(os.path.join(proj_dir, "utils/Pointnet2.PyTorch/pointnet2"))
 # import pointnet2_utils as pn2
 
-from utils.mm3d_pn2 import three_interpolate, furthest_point_sample, gather_points, grouping_operation
-
+# from utils.mm3d_pn2 import three_interpolate, furthest_point_sample, gather_points, grouping_operation
+# from ..utils import three_interpolate, furthest_point_sample, gather_points, grouping_operation
+sys.path.append("../utils")
+from mm3d_pn2 import three_interpolate, furthest_point_sample, gather_points, grouping_operation
 
 class Stack_conv(nn.Module):
     def __init__(self, input_size, output_size, act=None):

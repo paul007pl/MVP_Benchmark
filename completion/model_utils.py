@@ -16,8 +16,11 @@ import torch.nn.functional as F
 # from chamfer3D import dist_chamfer_3D
 # from fscore import fscore
 
-from .metrics import cd, fscore, emd
-from .mm3d_pn2 import furthest_point_sample, gather_points, grouping_operation, ball_query, three_nn
+sys.path.append("../utils")
+from metrics import cd, fscore, emd
+from mm3d_pn2 import furthest_point_sample, gather_points, grouping_operation, ball_query, three_nn
+
+# from ..utils import cd, fscore, emd, furthest_point_sample, gather_points, grouping_operation, ball_query, three_nn
 
 
 class EF_expansion(nn.Module):

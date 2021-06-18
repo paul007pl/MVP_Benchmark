@@ -5,8 +5,10 @@ import importlib
 import argparse
 import munch
 import yaml
-from utils.vis_utils import plot_single_pcd
-from utils.train_utils import *
+# from utils.vis_utils import plot_single_pcd
+# from utils.train_utils import *
+from vis_utils import plot_single_pcd
+from train_utils import *
 from dataset import ShapeNetH5
 
 

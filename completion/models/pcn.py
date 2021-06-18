@@ -5,7 +5,9 @@ import torch.nn.parallel
 import torch.utils.data
 import torch.nn.functional as F
 import math
-from utils.model_utils import gen_grid_up, calc_emd, calc_cd
+
+# from utils.model_utils import gen_grid_up, calc_emd, calc_cd
+from model_utils import gen_grid_up, calc_emd, calc_cd
 
 
 class PCN_encoder(nn.Module):
