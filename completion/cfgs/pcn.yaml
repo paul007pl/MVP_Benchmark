@@ -29,3 +29,4 @@ betas: 0.9, 0.999
 
 # test
 save_vis: True
+eval_emd: False

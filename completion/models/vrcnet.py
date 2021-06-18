@@ -415,6 +415,7 @@ class Model(nn.Module):
         self.size_z = size_z
         self.distribution_loss = args.distribution_loss
         self.train_loss = args.loss
+        self.eval_emd = args.eval_emd
         self.encoder = PCN_encoder(output_size=global_feature_size)
         self.posterior_infer1 = Linear_ResBlock(input_size=global_feature_size, output_size=global_feature_size)
         self.posterior_infer2 = Linear_ResBlock(input_size=global_feature_size, output_size=size_z * 2)
@@ -512,6 +513,9 @@ class Model(nn.Module):
             total_train_loss += (dl_rec.mean() + dl_g.mean()) * 20
             return fine, loss4, total_train_loss
         else:
-            emd = calc_emd(fine, gt, eps=0.004, iterations=3000)
+            if self.eval_emd:
+                emd = calc_emd(fine, gt, eps=0.004, iterations=3000)
+            else:
+                emd = 0
             cd_p, cd_t, f1 = calc_cd(fine, gt, calc_f1=True)
             return {'out1': coarse_raw, 'out2': fine, 'emd': emd, 'cd_p': cd_p, 'cd_t': cd_t, 'f1': f1}

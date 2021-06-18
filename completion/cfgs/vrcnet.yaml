@@ -39,3 +39,4 @@ num_coarse: 2048
 
 # test
 save_vis: True
+eval_emd: False

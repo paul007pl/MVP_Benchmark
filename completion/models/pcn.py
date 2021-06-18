@@ -76,6 +76,7 @@ class Model(nn.Module):
         self.num_coarse = num_coarse
         self.num_points = args.num_points
         self.train_loss = args.loss
+        self.eval_emd = args.eval_emd
         self.scale = self.num_points // num_coarse
         self.cat_feature_num = 2 + 3 + 1024
 
@@ -101,6 +102,9 @@ class Model(nn.Module):
             total_train_loss = loss1.mean() + loss2.mean() * alpha
             return out2, loss2, total_train_loss
         else:
-            emd = calc_emd(out2, gt, eps=0.004, iterations=3000)
+            if eval_emd:
+                emd = calc_emd(out2, gt, eps=0.004, iterations=3000)
+            else:
+                emd = 0
             cd_p, cd_t, f1 = calc_cd(out2, gt, calc_f1=True)
             return {'out1': out1, 'out2': out2, 'emd': emd, 'cd_p': cd_p, 'cd_t': cd_t, 'f1': f1}
