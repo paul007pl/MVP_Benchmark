@@ -12,22 +12,25 @@ import yaml
 import os
 import sys
 import argparse
-from dataset import ShapeNetH5
+from dataset import MVP_CP
 
 
 def train():
     logging.info(str(args))
-    metrics = ['cd_p', 'cd_t', 'emd', 'f1']
+    if args.eval_emd:
+        metrics = ['cd_p', 'cd_t', 'emd', 'f1']
+    else:
+        metrics = ['cd_p', 'cd_t', 'f1']
     best_epoch_losses = {m: (0, 0) if m == 'f1' else (0, math.inf) for m in metrics}
     train_loss_meter = AverageValueMeter()
     val_loss_meters = {m: AverageValueMeter() for m in metrics}
 
-    dataset = ShapeNetH5(train=True, npoints=args.num_points)
-    dataset_test = ShapeNetH5(train=False, npoints=args.num_points)
+    dataset = MVP_CP(train=True, npoints=args.num_points)
+    dataset_test = MVP_CP(train=False, npoints=args.num_points)
     dataloader = torch.utils.data.DataLoader(dataset, batch_size=args.batch_size,
-                                             shuffle=True, num_workers=int(args.workers))
+                                            shuffle=True, num_workers=int(args.workers))
     dataloader_test = torch.utils.data.DataLoader(dataset_test, batch_size=args.batch_size,
-                                                  shuffle=False, num_workers=int(args.workers))
+                                            shuffle=False, num_workers=int(args.workers))
     logging.info('Length of train dataset:%d', len(dataset))
     logging.info('Length of test dataset:%d', len(dataset_test))
 
@@ -157,6 +160,7 @@ def val(net, curr_epoch_num, val_loss_meters, dataloader_test, best_epoch_losses
         for i, data in enumerate(dataloader_test):
             label, inputs, gt = data
             # mean_feature = None
+            curr_batch_size = gt.shape[0]
 
             inputs = inputs.float().cuda()
             gt = gt.float().cuda()
@@ -164,7 +168,7 @@ def val(net, curr_epoch_num, val_loss_meters, dataloader_test, best_epoch_losses
             # result_dict = net(inputs, gt, is_training=False, mean_feature=mean_feature)
             result_dict = net(inputs, gt, is_training=False)
             for k, v in val_loss_meters.items():
-                v.update(result_dict[k].mean().item())
+                v.update(result_dict[k].mean().item(), curr_batch_size)
 
         fmt = 'best_%s: %f [epoch %d]; '
         best_log = ''

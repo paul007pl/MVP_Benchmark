@@ -509,8 +509,8 @@ class ModelNet40(Dataset):
 			return src.astype('float32'), tgt.astype('float32'), transform.astype('float32')
 
 
-class MVP(Dataset):
-	"""docstring for MVP"""
+class MVP_RG(Dataset):
+	"""docstring for MVP_RG"""
 	def __init__(self, path, partition, args, category=None):
 		self.partition = partition
 		

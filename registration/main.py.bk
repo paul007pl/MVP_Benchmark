@@ -3,19 +3,28 @@ import numpy as np
 import torch
 import torch.nn as nn
 from tensorboardX import SummaryWriter
-from time import time
+# from time import time
 from torch.utils.data import DataLoader, Subset
 from tqdm import tqdm
 import os
 import random
 import sys
+import logging
+import importlib
+import datetime
+import munch
+import yaml
+import argparse
 
-from data import TrainData, ModelNet40, MVP, ThreeDMatch, ThreeDMatchVoxel
-from DeepGMR_model import DeepGMR
-from DCP_model import DCP
-from PRNet_model import PRNet
-from ppr_model import PPR
-from idam_model import IDAM, FPFH, GNN
+from dataset import MVP_RG
+
+
+# from data import TrainData, ModelNet40, MVP, ThreeDMatch, ThreeDMatchVoxel
+# from DeepGMR_model import DeepGMR
+# from DCP_model import DCP
+# from PRNet_model import PRNet
+# from ppr_model import PPR
+# from idam_model import IDAM, FPFH, GNN
 
 def _init_(args):
 	if not os.path.exists('checkpoints'):
@@ -382,133 +391,151 @@ def eval_one_epoch(epoch, model, loader, writer, global_step, plot_freq, rmse_th
 
 
 if __name__ == "__main__":
+	parser = argparse.ArgumentParser(description='Train config file')
+    parser.add_argument('-c', '--config', help='path to config file', required=True)
+    arg = parser.parse_args()
+    config_path = arg.config
+    args = munch.munchify(yaml.safe_load(open(config_path)))
 
-	torch.backends.cudnn.deterministic = True
+    time = datetime.datetime.now().isoformat()[:19]
+    if args.load_model:
+        exp_name = os.path.basename(os.path.dirname(args.load_model))
+        log_dir = os.path.dirname(args.load_model)
+    else:
+        exp_name = args.model_name + '_' + args.loss + '_' + args.flag + '_' + time
+        log_dir = os.path.join(args.work_dir, exp_name)
+        if not os.path.exists(log_dir):
+            os.makedirs(log_dir)
+    logging.basicConfig(level=logging.INFO, handlers=[logging.FileHandler(os.path.join(log_dir, 'train.log')),
+                                                      logging.StreamHandler(sys.stdout)])
+    train()
 
-	if not args.manual_seed:
-		args.seed = random.randint(1, 10000) 
+# 	torch.backends.cudnn.deterministic = True
+
+# 	if not args.manual_seed:
+# 		args.seed = random.randint(1, 10000) 
 	
-	log_string("Random Seed: %d" % args.seed)
+# 	log_string("Random Seed: %d" % args.seed)
 
-	torch.manual_seed(args.seed)
-	torch.cuda.manual_seed_all(args.seed)
-	np.random.seed(args.seed)
+# 	torch.manual_seed(args.seed)
+# 	torch.cuda.manual_seed_all(args.seed)
+# 	np.random.seed(args.seed)
 
-	# data = TrainData(args.data_file, args)
-	# ids = np.random.permutation(len(data))
-	# n_val = int(args.val_fraction * len(data))
-	# train_data = Subset(data, ids[n_val:])
-	# valid_data = Subset(data, ids[:n_val])
+# 	# data = TrainData(args.data_file, args)
+# 	# ids = np.random.permutation(len(data))
+# 	# n_val = int(args.val_fraction * len(data))
+# 	# train_data = Subset(data, ids[n_val:])
+# 	# valid_data = Subset(data, ids[:n_val])
 
-	if args.benchmark == 'ModelNet40':
-		if args.partial:
-			args.num_points = 768
-		else:
-			args.num_points = 1024
-		train_data = ModelNet40('./data/ModelNet40_train.h5', 'train', args)
-		test_data = ModelNet40('./data/ModelNet40_test.h5', 'test', args)
-		# test_data = ModelNet40('./data/ModelNet40_train.h5', 'train', args)
-		# test_data = ModelNet40('./data/ModelNet40_test.h5', 'train', args)
+# 	if args.benchmark == 'ModelNet40':
+# 		if args.partial:
+# 			args.num_points = 768
+# 		else:
+# 			args.num_points = 1024
+# 		train_data = ModelNet40('./data/ModelNet40_train.h5', 'train', args)
+# 		test_data = ModelNet40('./data/ModelNet40_test.h5', 'test', args)
+# 		# test_data = ModelNet40('./data/ModelNet40_train.h5', 'train', args)
+# 		# test_data = ModelNet40('./data/ModelNet40_test.h5', 'train', args)
 
-	elif args.benchmark == 'MVP':
-		args.num_points = 2048
-		train_data = MVP('./data/MVP_train_2048pts.h5', 'train', args)
-		test_data = MVP('./data/MVP_test_2048pts.h5', 'test', args)
+# 	elif args.benchmark == 'MVP':
+# 		args.num_points = 2048
+# 		train_data = MVP('./data/MVP_train_2048pts.h5', 'train', args)
+# 		test_data = MVP('./data/MVP_test_2048pts.h5', 'test', args)
 		
-	elif args.benchmark == '3DMatch':
-		# args.num_points = 4096
-		# train_data = ThreeDMatch('./data/3DMatch_train_4096pts.h5', 'train', args)
-		# test_data = ThreeDMatch('./data/3DMatch_all_test_4096pts.h5', 'test', args)
+# 	elif args.benchmark == '3DMatch':
+# 		# args.num_points = 4096
+# 		# train_data = ThreeDMatch('./data/3DMatch_train_4096pts.h5', 'train', args)
+# 		# test_data = ThreeDMatch('./data/3DMatch_all_test_4096pts.h5', 'test', args)
 		
-		# args.num_points = 3072
-		# train_data = ThreeDMatch('./data/3DMatch_train_3072pts.h5', 'train', args)
-		# test_data = ThreeDMatch('./data/3DMatch_test_3072pts.h5', 'test', args)
+# 		# args.num_points = 3072
+# 		# train_data = ThreeDMatch('./data/3DMatch_train_3072pts.h5', 'train', args)
+# 		# test_data = ThreeDMatch('./data/3DMatch_test_3072pts.h5', 'test', args)
 		
-		args.num_points = None
-		train_data = ThreeDMatchVoxel('./data/3DMatch_train_voxel_pts.h5', 'train', args)
-		test_data = ThreeDMatchVoxel('./data/3DMatch_all_test_voxel_pts.h5', 'test', args)
+# 		args.num_points = None
+# 		train_data = ThreeDMatchVoxel('./data/3DMatch_train_voxel_pts.h5', 'train', args)
+# 		test_data = ThreeDMatchVoxel('./data/3DMatch_all_test_voxel_pts.h5', 'test', args)
 		
 
-	train_loader = DataLoader(train_data, args.batch_size, drop_last=True, shuffle=True)
-	test_loader = DataLoader(test_data, args.eval_batch_size, drop_last=False, shuffle=False)
+# 	train_loader = DataLoader(train_data, args.batch_size, drop_last=True, shuffle=True)
+# 	test_loader = DataLoader(test_data, args.eval_batch_size, drop_last=False, shuffle=False)
 
-	# _init_(args)
-	if args.method == 'deepgmr':
-		model = DeepGMR(args)
-	elif args.method == 'dcp':
-		model = DCP(args)
-	elif args.method == 'prnet':
-		model = PRNet(args)
-	elif args.method == 'ppr':
-		model = PPR(args)
-	elif args.method == 'idam_gnn':
-		args.emb_dims = 64
-		model = IDAM(GNN(args.emb_dims), args)
-	elif args.method == 'idam_fpfh':
-		args.emb_dims = 33
-		model = IDAM(FPFH(), args)
+# 	# _init_(args)
+# 	if args.method == 'deepgmr':
+# 		model = DeepGMR(args)
+# 	elif args.method == 'dcp':
+# 		model = DCP(args)
+# 	elif args.method == 'prnet':
+# 		model = PRNet(args)
+# 	elif args.method == 'ppr':
+# 		model = PPR(args)
+# 	elif args.method == 'idam_gnn':
+# 		args.emb_dims = 64
+# 		model = IDAM(GNN(args.emb_dims), args)
+# 	elif args.method == 'idam_fpfh':
+# 		args.emb_dims = 33
+# 		model = IDAM(FPFH(), args)
 
-	if args.model_path is not "":
-		model.load_state_dict(torch.load(args.model_path))
+# 	if args.model_path is not "":
+# 		model.load_state_dict(torch.load(args.model_path))
 
-	if torch.cuda.is_available():
-		model.cuda()
-		model = nn.DataParallel(model)
-
-
-	optimizer = torch.optim.Adam(model.parameters(), args.lr)
-	scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, factor=0.5, min_lr=1e-6)
-
-	writer_path = 'checkpoints/%s/' % args.log_dir
-	print(writer_path)
-	writer = SummaryWriter(writer_path)
-
-	if args.eval_only:
-		info_test_best = eval_one_epoch(0, model, test_loader, writer, 0, args.eval_plot_freq, benchmark=args.benchmark)
-		test_loss = info_test_best['loss']
-
-		log_fmt = 'BestTestEpoch {:03d} loss {:.4f}, rotation error {:.2f}, translation error {:.4f}, RMSE {:.4f}, recall {:.4f}, MSE {:.4f}'
-		log_str = log_fmt.format(
-		info_test_best['epoch'], info_test_best['loss'], info_test_best['rotation_error'],
-		info_test_best['translation_error'], info_test_best['RMSE'], info_test_best['recall'], info_test_best['MSE']
-		)
-		log_string(log_str)
-
-	else:
-		info_test_best = None
-
-		for epoch in range(args.num_epochs):
-			train_one_epoch(epoch, model, train_loader, writer, args.log_freq, args.plot_freq, benchmark=args.benchmark)
-
-			global_step = (epoch+1) * len(train_loader)
-			info_test = eval_one_epoch(epoch, model, test_loader, writer, global_step, args.eval_plot_freq, benchmark=args.benchmark)
-
-			# info_test['epoch'] = epoch
-			test_loss = info_test['loss']
-
-			# if (info_test_best is None) or (info_test_best['RMSE'] > info_test['RMSE']):
-			if (info_test_best is None) or (info_test_best['MSE'] > info_test['MSE']):
-				info_test_best = info_test
-				# info_test_best['stage'] = 'best_test'
-				print('save best model')
-				torch.save(model.state_dict(), ('checkpoints/%s/models/model_best.pth' % args.log_dir))
-
-			log_fmt = 'BestTestEpoch {:03d} loss {:.4f}, rotation error {:.2f}, translation error {:.4f}, RMSE {:.4f}, recall {:.4f}, MSE {:.4f}'
-			log_str = log_fmt.format(
-			info_test_best['epoch'], info_test_best['loss'], info_test_best['rotation_error'],
-			info_test_best['translation_error'], info_test_best['RMSE'], info_test_best['recall'], info_test_best['MSE']
-			)
-			log_string(log_str)
-
-			scheduler.step(test_loss)
-			for param_group in optimizer.param_groups:
-				lr = float(param_group['lr'])
-				break
-			writer.add_scalar('train/learning_rate', lr, global_step)
-
-			if (epoch+1) % args.save_freq == 0:
-				filename = ('checkpoints/%s/models/checkpoint_epoch-%d.pth' % (args.log_dir, epoch+1))
-				torch.save(model.state_dict(), filename)
+# 	if torch.cuda.is_available():
+# 		model.cuda()
+# 		model = nn.DataParallel(model)
 
 
-LOG_FOUT.close()
+# 	optimizer = torch.optim.Adam(model.parameters(), args.lr)
+# 	scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, factor=0.5, min_lr=1e-6)
+
+# 	writer_path = 'checkpoints/%s/' % args.log_dir
+# 	print(writer_path)
+# 	writer = SummaryWriter(writer_path)
+
+# 	if args.eval_only:
+# 		info_test_best = eval_one_epoch(0, model, test_loader, writer, 0, args.eval_plot_freq, benchmark=args.benchmark)
+# 		test_loss = info_test_best['loss']
+
+# 		log_fmt = 'BestTestEpoch {:03d} loss {:.4f}, rotation error {:.2f}, translation error {:.4f}, RMSE {:.4f}, recall {:.4f}, MSE {:.4f}'
+# 		log_str = log_fmt.format(
+# 		info_test_best['epoch'], info_test_best['loss'], info_test_best['rotation_error'],
+# 		info_test_best['translation_error'], info_test_best['RMSE'], info_test_best['recall'], info_test_best['MSE']
+# 		)
+# 		log_string(log_str)
+
+# 	else:
+# 		info_test_best = None
+
+# 		for epoch in range(args.num_epochs):
+# 			train_one_epoch(epoch, model, train_loader, writer, args.log_freq, args.plot_freq, benchmark=args.benchmark)
+
+# 			global_step = (epoch+1) * len(train_loader)
+# 			info_test = eval_one_epoch(epoch, model, test_loader, writer, global_step, args.eval_plot_freq, benchmark=args.benchmark)
+
+# 			# info_test['epoch'] = epoch
+# 			test_loss = info_test['loss']
+
+# 			# if (info_test_best is None) or (info_test_best['RMSE'] > info_test['RMSE']):
+# 			if (info_test_best is None) or (info_test_best['MSE'] > info_test['MSE']):
+# 				info_test_best = info_test
+# 				# info_test_best['stage'] = 'best_test'
+# 				print('save best model')
+# 				torch.save(model.state_dict(), ('checkpoints/%s/models/model_best.pth' % args.log_dir))
+
+# 			log_fmt = 'BestTestEpoch {:03d} loss {:.4f}, rotation error {:.2f}, translation error {:.4f}, RMSE {:.4f}, recall {:.4f}, MSE {:.4f}'
+# 			log_str = log_fmt.format(
+# 			info_test_best['epoch'], info_test_best['loss'], info_test_best['rotation_error'],
+# 			info_test_best['translation_error'], info_test_best['RMSE'], info_test_best['recall'], info_test_best['MSE']
+# 			)
+# 			log_string(log_str)
+
+# 			scheduler.step(test_loss)
+# 			for param_group in optimizer.param_groups:
+# 				lr = float(param_group['lr'])
+# 				break
+# 			writer.add_scalar('train/learning_rate', lr, global_step)
+
+# 			if (epoch+1) % args.save_freq == 0:
+# 				filename = ('checkpoints/%s/models/checkpoint_epoch-%d.pth' % (args.log_dir, epoch+1))
+# 				torch.save(model.state_dict(), filename)
+
+
+# LOG_FOUT.close()

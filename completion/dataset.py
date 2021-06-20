@@ -5,7 +5,7 @@ import h5py
 import os
 
 
-class ShapeNetH5(data.Dataset):
+class MVP_CP(data.Dataset):
     def __init__(self, train=True, npoints=2048, novel_input=True, novel_input_only=False):
         if train:
             self.input_path = './data/mvp_train_input.h5'
