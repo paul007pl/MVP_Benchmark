@@ -2,14 +2,18 @@ import argparse
 import numpy as np
 import torch
 import torch.nn as nn
-from tensorboardX import SummaryWriter
+# from tensorboardX import SummaryWriter
 # from time import time
-from torch.utils.data import DataLoader, Subset
+# from torch.utils.data import DataLoader, Subset
+
+import torch.optim as optim
 from tqdm import tqdm
 import os
 import random
 import sys
+
 import logging
+import math
 import importlib
 import datetime
 import munch
@@ -36,8 +40,8 @@ def train():
         val_split_loss_meters.append(row)
     val_split_loss_meters = np.array(val_split_loss_meters)
 
-    dataset = MVP_RG(train=True, args)
-    dataset_test = MVP_RG(train=False, args)
+    dataset = MVP_RG(prefix="train", args=args)
+    dataset_test = MVP_RG(prefix="test", args=args)
     dataloader = torch.utils.data.DataLoader(dataset, batch_size=args.batch_size,
                                             shuffle=True, num_workers=int(args.workers))
     dataloader_test = torch.utils.data.DataLoader(dataset_test, batch_size=args.batch_size,
@@ -60,6 +64,7 @@ def train():
         net.module.apply(model_module.weights_init)
 
     lr = args.lr
+    optimizer = getattr(optim, args.optimizer)
     if args.optimizer == 'Adam':
         betas = args.betas.split(',')
         betas = (float(betas[0].strip()), float(betas[1].strip()))
@@ -135,9 +140,9 @@ def val(net, curr_epoch_num, val_loss_meters, val_split_loss_meters, dataloader_
 
             val_loss_meters['RotE'].update(r_err.mean().item(), curr_batch_size)
             val_loss_meters['transE'].update(t_err.mean().item(), curr_batch_size)
-            val_loss_meters['MSE'].update(mse.mean.item(), curr_batch_size)
-            val_loss_meters['RMSE'].update(rmse.mean.item(), curr_batch_size)
-            val_loss_meters['recall'].update((rmse < rmse_thresh).mean().item(), curr_batch_size)
+            val_loss_meters['MSE'].update(mse.mean().item(), curr_batch_size)
+            val_loss_meters['RMSE'].update(rmse.mean().item(), curr_batch_size)
+            val_loss_meters['recall'].update((rmse < rmse_thresh).to(torch.float32).mean().item(), curr_batch_size)
             
             for i in range(curr_batch_size):
                 val_split_loss_meters[rot_level[i]][match_level[i]]['RotE'].update(r_err[i].item())
@@ -177,7 +182,7 @@ def val(net, curr_epoch_num, val_loss_meters, val_split_loss_meters, dataloader_
 
 
 if __name__ == "__main__":
-	parser = argparse.ArgumentParser(description='Train config file')
+    parser = argparse.ArgumentParser(description='Train config file')
     parser.add_argument('-c', '--config', help='path to config file', required=True)
     arg = parser.parse_args()
     config_path = arg.config
@@ -188,12 +193,12 @@ if __name__ == "__main__":
         exp_name = os.path.basename(os.path.dirname(args.load_model))
         log_dir = os.path.dirname(args.load_model)
     else:
-        exp_name = args.model_name + '_' + args.loss + '_' + args.flag + '_' + time
+        exp_name = args.model_name + '_' + args.benchmark + '_' + args.flag + '_' + time
         log_dir = os.path.join(args.work_dir, exp_name)
         if not os.path.exists(log_dir):
             os.makedirs(log_dir)
     logging.basicConfig(level=logging.INFO, handlers=[logging.FileHandler(os.path.join(log_dir, 'train.log')),
-                                                      logging.StreamHandler(sys.stdout)])
+                                                        logging.StreamHandler(sys.stdout)])
     train()
 
 

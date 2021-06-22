@@ -1,3 +1,4 @@
+import sys
 import math
 import torch
 import torch.nn as nn
@@ -5,9 +6,13 @@ import torch.nn.functional as F
 from torch.autograd import Variable
 
 from copy import deepcopy
-from visu_util import visualize, plot_pcd, plot_matches
-from utils import *
-import pn2_utils.mm3d_pn2.ops as pn2
+from visu_utils import visualize, plot_pcd, plot_matches
+from train_utils import *
+
+
+# import pn2_utils.mm3d_pn2.ops as pn2
+sys.path.append("../utils")
+from mm3d_pn2 import three_interpolate, furthest_point_sample, gather_points, grouping_operation, three_nn
 
 _EPS = 1e-5  # To prevent division by zero
 
@@ -498,17 +503,17 @@ def get_cluster_ppf(points, normals, ppf=None, num_clusters=64, num_samples=128,
 		cluster_ppf: B 4K S M
 	"""
 	batch_size = points.size()[0]
-	p_idx = pn2.furthest_point_sample(points, num_clusters) # pts => B N 3, M; B M
-	center_pts = pn2.gather_points(points.transpose(1,2).contiguous(), p_idx).transpose(1,2).contiguous() # B M 3
-	center_n = pn2.gather_points(normals.transpose(1,2).contiguous(), p_idx).transpose(1,2).contiguous()
+	p_idx = furthest_point_sample(points, num_clusters) # pts => B N 3, M; B M
+	center_pts = gather_points(points.transpose(1,2).contiguous(), p_idx).transpose(1,2).contiguous() # B M 3
+	center_n = gather_points(normals.transpose(1,2).contiguous(), p_idx).transpose(1,2).contiguous()
 
 	pn_idx = knn_point(num_samples+1, points, center_pts).detach().int()[:, :, 1:].contiguous() # B M S
 	# pn_idx = knn_point(num_samples, points, center_pts).detach().int() # B M S
-	cluster_pts = pn2.grouping_operation(points.transpose(1,2).contiguous(), pn_idx).permute(0, 2, 3, 1).contiguous() # B M S 3
-	cluster_n = pn2.grouping_operation(normals.transpose(1,2).contiguous(), pn_idx).permute(0, 2, 3, 1).contiguous()
+	cluster_pts = grouping_operation(points.transpose(1,2).contiguous(), pn_idx).permute(0, 2, 3, 1).contiguous() # B M S 3
+	cluster_n = grouping_operation(normals.transpose(1,2).contiguous(), pn_idx).permute(0, 2, 3, 1).contiguous()
 
 	if ppf is not None:
-		cluster_ppf = pn2.grouping_operation(ppf, pn_idx).transpose(2,3).contiguous() # B 4K S M
+		cluster_ppf = grouping_operation(ppf, pn_idx).transpose(2,3).contiguous() # B 4K S M
 
 	else:
 		pts0 = cluster_pts.view(batch_size*num_centers, num_samples, 3) # BM S 3
@@ -546,14 +551,14 @@ def get_ppf(points, normals, num_clusters=0, num_samples=5):
 	"""
 	batch_size = points.size()[0]
 	if num_clusters > 0:
-		p_idx = pn2.furthest_point_sample(points, num_clusters) # pts => B N 3, M; B M
-		center_pts = pn2.gather_points(points.transpose(1,2).contiguous(), p_idx).transpose(1,2).contiguous() # B M 3
-		center_n = pn2.gather_points(normals.transpose(1,2).contiguous(), p_idx).transpose(1,2).contiguous()
+		p_idx = furthest_point_sample(points, num_clusters) # pts => B N 3, M; B M
+		center_pts = gather_points(points.transpose(1,2).contiguous(), p_idx).transpose(1,2).contiguous() # B M 3
+		center_n = gather_points(normals.transpose(1,2).contiguous(), p_idx).transpose(1,2).contiguous()
 
 		pn_idx = knn_point(num_samples+1, points, center_pts).detach().int()[:, :, 1:].contiguous() # B M S
 		# pn_idx = knn_point(num_samples, points, center_pts).detach().int() # B M S
-		cluster_pts = pn2.grouping_operation(points.transpose(1,2).contiguous(), pn_idx).permute(0, 2, 3, 1).contiguous() # B M S 3
-		cluster_n = pn2.grouping_operation(normals.transpose(1,2).contiguous(), pn_idx).permute(0, 2, 3, 1).contiguous()
+		cluster_pts = grouping_operation(points.transpose(1,2).contiguous(), pn_idx).permute(0, 2, 3, 1).contiguous() # B M S 3
+		cluster_n = grouping_operation(normals.transpose(1,2).contiguous(), pn_idx).permute(0, 2, 3, 1).contiguous()
 
 	else:
 		p_idx = knn_feature(points.transpose(1,2).contiguous(), num_samples+1)[:, :, 1:].contiguous() # B N S
@@ -642,22 +647,22 @@ def edge_preserve_sampling(feature_input, point_input, num_samples, k=10):
 	# feature_size = feature_input.size()[1]
 	num_points = feature_input.size()[2]
 
-	p_idx = pn2.furthest_point_sample(point_input, num_samples) # B M
-	# point_output = pn2.gather_operation(point_input.transpose(1,2).contiguous(), p_idx).transpose(1,2).contiguous() # B M 3
-	point_output = pn2.gather_points(point_input.transpose(1,2).contiguous(), p_idx).transpose(1,2).contiguous() # B M 3
+	p_idx = furthest_point_sample(point_input, num_samples) # B M
+	# point_output = gather_operation(point_input.transpose(1,2).contiguous(), p_idx).transpose(1,2).contiguous() # B M 3
+	point_output = gather_points(point_input.transpose(1,2).contiguous(), p_idx).transpose(1,2).contiguous() # B M 3
 
 	pk = int(min(k, num_points))
 	pn_idx = knn_point(pk, point_input, point_output).detach().int() # B M pk
 	# print(pn_idx.size())
 
-	# neighbor_feature = pn2.grouping_operation(feature_input, pn_idx)
+	# neighbor_feature = grouping_operation(feature_input, pn_idx)
 	# neighbor_feature = index_points(feature_input.transpose(1,2).contiguous(), pn_idx).permute(0, 3, 1, 2)
-	# neighbor_feature = pn2.gather_operation(feature_input, pn_idx.view(batch_size, num_samples*pk)).view(batch_size, feature_size, num_samples, pk)
-	neighbor_feature = pn2.grouping_operation(feature_input, pn_idx) # B C M k
+	# neighbor_feature = gather_operation(feature_input, pn_idx.view(batch_size, num_samples*pk)).view(batch_size, feature_size, num_samples, pk)
+	neighbor_feature = grouping_operation(feature_input, pn_idx) # B C M k
 	neighbor_feature, _ = torch.max(neighbor_feature, 3)
 
-	# center_feature = pn2.grouping_operation(feature_input, p_idx.unsqueeze(2)).view(batch_size, -1, num_samples)
-	center_feature = pn2.gather_points(feature_input, p_idx)
+	# center_feature = grouping_operation(feature_input, p_idx.unsqueeze(2)).view(batch_size, -1, num_samples)
+	center_feature = gather_points(feature_input, p_idx)
 
 	net = torch.cat((center_feature, neighbor_feature), 1)
 
@@ -665,7 +670,7 @@ def edge_preserve_sampling(feature_input, point_input, num_samples, k=10):
 
 
 def three_nn_upsampling(target_points, source_points):
-	dist, idx = pn2.three_nn(target_points, source_points)
+	dist, idx = three_nn(target_points, source_points)
 	dist = torch.max(dist, torch.ones(1).cuda()*1e-10)
 	norm = torch.sum((1.0/dist), 2, keepdim=True)
 	norm = norm.repeat(1,1,3)
@@ -780,15 +785,15 @@ def sample_group(num_centers, num_samples, pts, feats=None):
 	Output:
 		center_pts: B M 3; cluster_pts: B 3 S M; cluster_feat: B C S M; 
 	'''
-	p_idx = pn2.furthest_point_sample(pts, num_centers) # pts => B N 3, M
-	center_pts = pn2.gather_points(pts.transpose(1,2).contiguous(), p_idx).transpose(1,2).contiguous() # B M 3
+	p_idx = furthest_point_sample(pts, num_centers) # pts => B N 3, M
+	center_pts = gather_points(pts.transpose(1,2).contiguous(), p_idx).transpose(1,2).contiguous() # B M 3
 	pn_idx = knn_point(num_samples, pts, center_pts).detach().int() # B M S
 
 	if feats is not None:
-		cluster_feats = pn2.grouping_operation(feats, pn_idx).transpose(2, 3).contiguous() # B C S M
+		cluster_feats = grouping_operation(feats, pn_idx).transpose(2, 3).contiguous() # B C S M
 	else:
 		cluster_feats = None
-	cluster_pts = pn2.grouping_operation(pts.transpose(1,2).contiguous(), pn_idx).transpose(2, 3).contiguous() # B 3 S M
+	cluster_pts = grouping_operation(pts.transpose(1,2).contiguous(), pn_idx).transpose(2, 3).contiguous() # B 3 S M
 	return center_pts, cluster_pts, cluster_feats
 
 
@@ -954,7 +959,7 @@ class SA_Res_encoder1(nn.Module):
 
 	def _edge_unpooling(self, features, src_pts, tgt_pts):
 		idx, weight = three_nn_upsampling(tgt_pts, src_pts)
-		features = pn2.three_interpolate(features, idx, weight)
+		features = three_interpolate(features, idx, weight)
 		return features
 
 
@@ -1075,7 +1080,7 @@ class SA_Res_encoder(nn.Module):
 
 	def _edge_unpooling(self, features, src_pts, tgt_pts):
 		idx, weight = three_nn_upsampling(tgt_pts, src_pts)
-		features = pn2.three_interpolate(features, idx, weight)
+		features = three_interpolate(features, idx, weight)
 		return features
 
 
@@ -1239,7 +1244,7 @@ class PointTransformer(nn.Module):
 
 	def _edge_unpooling(self, features, src_pts, tgt_pts):
 		idx, weight = three_nn_upsampling(tgt_pts, src_pts)
-		features = pn2.three_interpolate(features, idx, weight)
+		features = three_interpolate(features, idx, weight)
 		return features
 
 

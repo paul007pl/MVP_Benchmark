@@ -2,8 +2,9 @@ import math
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from visu_util import visualize
-from utils import *
+from visu_utils import visualize
+from train_utils import *
+from model_utils import get_rri_cluster, rotation_geodesic_error
 
 
 def gmm_params(gamma, pts):
@@ -103,7 +104,7 @@ class PointNet(nn.Module):
 		super(PointNet, self).__init__()
 		self.use_tnet = args.use_tnet
 		self.tnet = TNet() if self.use_tnet else None
-		d_input = args.k_rri * 4 if args.use_data_rri else 3
+		d_input = args.rri_size * 4 if args.use_rri else 3
 		self.encoder = nn.Sequential(
 			Conv1dBNReLU(d_input, 64),
 			Conv1dBNReLU(64, 128),
@@ -124,12 +125,12 @@ class PointNet(nn.Module):
 		return y.transpose(1, 2)
 
 
-class DeepGMR(nn.Module):
+class Model(nn.Module):
 	def __init__(self, args):
-		super(DeepGMR, self).__init__()
+		super(Model, self).__init__()
 		self.backbone = PointNet(args)
-		self.use_rri = args.use_data_rri
-		self.k = args.k_rri
+		self.use_rri = args.use_rri
+		self.k = args.rri_size
 
 	def regis_err(self, T_gt, reverse=False):
 		if reverse:
@@ -143,10 +144,12 @@ class DeepGMR(nn.Module):
 
 	def forward(self, pts1, pts2, T_gt):
 		if self.use_rri:
-			self.pts1 = pts1[..., :3]
-			self.pts2 = pts2[..., :3]
-			feats1 = pts1[..., 3:].transpose(1, 2)
-			feats2 = pts2[..., 3:].transpose(1, 2)
+			self.pts1 = pts1
+			self.pts2 = pts2
+			feats1 = get_rri_cluster(pts1.transpose(1,2).unsqueeze(-1), self.k)
+			feats2 = get_rri_cluster(pts2.transpose(1,2).unsqueeze(-1), self.k)
+			feats1 = feats1.squeeze(-1)
+			feats2 = feats2.squeeze(-1)
 		else:
 			self.pts1 = pts1
 			self.pts2 = pts2
@@ -172,7 +175,9 @@ class DeepGMR(nn.Module):
 		# self.rmse = rmse_loss(self.pts1[:, :100], self.T_12, T_gt)
 		self.rmse = rmse_loss(self.pts1, self.T_12, T_gt)
 
-		return loss, self.r_err, self.t_err, self.rmse, self.mse1
+		self.mse = (rotation_geodesic_error(self.T_12[:, :3, :3], T_gt[:, :3, :3]) + translation_error(self.T_12[:, :3, 3], T_gt[:, :3, 3]))
+
+		return loss, self.r_err, self.t_err, self.rmse, self.mse
 
 	def visualize(self, i):
 		init_r_err = torch.acos((self.T_gt[i, :3, :3].trace() - 1) / 2) * 180 / math.pi

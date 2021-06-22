@@ -1,0 +1,40 @@
+batch_size: 32
+workers: 0
+nepoch: 100
+model_name: idam
+load_model: null
+start_epoch: 0
+work_dir: log/
+flag: debug
+
+manual_seed: null
+
+step_interval_to_print: 30
+step_interval_to_plot: 250
+epoch_interval_to_save: 10
+epoch_interval_to_val: 1
+
+lr: 0.001
+lr_decay: True
+lr_decay_rate: 0.5
+lr_clip: 1.e-6
+optimizer: Adam
+weight_decay: 0
+betas: 0.9, 0.999
+
+use_rri: False
+rri_size: 20
+num_groups: 16
+num_points: 2048
+# use_tnet: False
+use_fpfh: False
+use_ppf: False
+descriptor_size: 64
+num_iters: 3
+
+max_angle: 180
+max_trans: 0.5
+category: null
+benchmark: mvp
+num_rot_levels: 2
+num_corr_levels: 2

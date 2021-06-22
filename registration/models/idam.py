@@ -12,7 +12,7 @@ from torch.autograd import Variable
 # from util import knn, batch_choice
 import open3d as o3d
 # from open3d.open3d.geometry import estimate_normals
-from utils import rotation_error, translation_error, rmse_loss, rt_to_transformation
+from train_utils import rotation_error, translation_error, rmse_loss, rt_to_transformation
 from model_utils import rotation_geodesic_error
 
 
@@ -152,7 +152,7 @@ class GNN(nn.Module):
 class SVDHead(nn.Module):
     def __init__(self, args):
         super(SVDHead, self).__init__()
-        self.emb_dims = args.emb_dims
+        self.emb_dims = 33 if args.use_fpfh else args.descriptor_size 
         self.reflect = nn.Parameter(torch.eye(3), requires_grad=False)
         self.reflect[2, 2] = -1
 
@@ -189,12 +189,12 @@ class SVDHead(nn.Module):
         # return R, t.view(batch_size, 3)
 
 
-class IDAM(nn.Module):
-    def __init__(self, emb_nn, args):
-        super(IDAM, self).__init__()
-        self.emb_dims = args.emb_dims
-        self.num_iter = 3
-        self.emb_nn = emb_nn
+class Model(nn.Module):
+    def __init__(self, args):
+        super(Model, self).__init__()
+        self.emb_dims = 33 if args.use_fpfh else args.descriptor_size 
+        self.num_iter = args.num_iters
+        self.emb_nn = FPFH() if args.use_fpfh else GNN(self.emb_dims)
         self.significance_fc = Conv1DBlock((self.emb_dims, 64, 32, 1), 1)
         self.sim_mat_conv1 = nn.ModuleList([Conv2DBlock((self.emb_dims*2+4, 32, 32), 1) for _ in range(self.num_iter)])
         self.sim_mat_conv2 = nn.ModuleList([Conv2DBlock((32, 32, 1), 1) for _ in range(self.num_iter)])
@@ -345,7 +345,7 @@ class IDAM(nn.Module):
             t = torch.matmul(rotation_ab, t.unsqueeze(-1)).squeeze() + translation_ab
             ##### get R and t #####
 
-        mse = (rotation_geodesic_error(R, R_gt) + translation_error(t, t_gt)).mean()
+        mse = (rotation_geodesic_error(R, R_gt) + translation_error(t, t_gt)) #.mean()
         r_err = rotation_error(R, R_gt)
         t_err = translation_error(t, t_gt)
         self.T = rt_to_transformation(R, t.unsqueeze(-1))

@@ -14,7 +14,8 @@ import torch.nn as nn
 import torch.nn.functional as F
 from torch.autograd import Variable
 # from util import quat2mat
-from utils import *
+from train_utils import *
+from model_utils import rotation_geodesic_error
 
 # Part of the code is referred from: http://nlp.seas.harvard.edu/2018/04/03/attention.html#positional-encoding
 
@@ -441,9 +442,9 @@ class SVDHead(nn.Module):
 		return R, t.view(batch_size, 3)
 
 
-class DCP(nn.Module):
+class Model(nn.Module):
 	def __init__(self, args):
-		super(DCP, self).__init__()
+		super(Model, self).__init__()
 		self.emb_dims = 512
 		# self.emb_dims = args.emb_dims #512
 		# self.cycle = args.cycle #False
@@ -488,5 +489,7 @@ class DCP(nn.Module):
 		mse = F.mse_loss(T_12 @ torch.inverse(T_gt), eye)
 
 		loss = mse
+
+		rt_mse = (rotation_geodesic_error(T_12[:, :3, :3], T_gt[:, :3, :3]) + translation_error(T_12[:, :3, 3], T_gt[:, :3, 3]))
 		
-		return loss, r_err, t_err, rmse, mse
+		return loss, r_err, t_err, rmse, rt_mse

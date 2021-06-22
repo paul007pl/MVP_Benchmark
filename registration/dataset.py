@@ -37,12 +37,14 @@ def random_translation(max_dist):
 
 class MVP_RG(Dataset):
     """docstring for MVP_RG"""
-    def __init__(self, train, args):
-        self.train = train
+    def __init__(self, prefix, args):
+        self.prefix = prefix
 
-        if self.train == True:
+        if self.prefix == "train":
             f = h5py.File('./data/MVP_train_2048pts.h5', 'r')
-        else:
+        elif self.prefix == "val":
+            f = h5py.File('./data/MVP_val_2048pts.h5', 'r')
+        elif self.prefix == "test":
             f = h5py.File('./data/MVP_test_2048pts.h5', 'r')
         
         self.max_angle = args.max_angle / 180 * np.pi
@@ -57,14 +59,14 @@ class MVP_RG(Dataset):
             match_id.append(ds_data)
         self.match_id = np.array(match_id, dtype=object)
 
-        if self.train == True:
+        if self.prefix == "train":
             self.src = np.array(f['src'][:].astype('float32'))
             self.tgt = np.array(f['tgt'][:].astype('float32'))
             if args.max_angle > 45:
                 self.rot_level = int(1)
             else:
                 self.rot_level = int(0)
-        elif self.train == False:
+        else:
             self.src = np.array(f['rotated_src'][:].astype('float32'))
             self.tgt = np.array(f['rotated_tgt'][:].astype('float32'))
             self.transforms = np.array(f['transforms'][:].astype('float32'))
@@ -77,7 +79,7 @@ class MVP_RG(Dataset):
             self.tgt = self.tgt[self.label==args.category]
             self.match_id = self.match_id[self.label==args.category]
             self.match_level = self.match_level[self.label==args.category]
-            if self.train == False:
+            if self.prefix == False:
                 self.transforms = self.transforms[self.label==args.category]
                 self.rot_level = self.rot_level[self.label==args.category]
             self.label = self.label[self.label==args.category]
@@ -92,7 +94,7 @@ class MVP_RG(Dataset):
         tgt = self.tgt[index]
         match_level = self.match_level[index]
 
-        if self.train == True:
+        if self.prefix == "train":
             transform = random_pose(self.max_angle, self.max_trans / 2)
             pose1 = random_pose(np.pi, self.max_trans)
             pose2 = transform @ pose1
@@ -102,7 +104,7 @@ class MVP_RG(Dataset):
 
             rot_level = self.rot_level
         
-        elif self.train == False:
+        else:
             transform = self.transforms[index]
             rot_level = self.rot_level[index]
 
