@@ -41,7 +41,7 @@ def train():
     val_split_loss_meters = np.array(val_split_loss_meters)
 
     dataset = MVP_RG(prefix="train", args=args)
-    dataset_test = MVP_RG(prefix="test", args=args)
+    dataset_test = MVP_RG(prefix="val", args=args)
     dataloader = torch.utils.data.DataLoader(dataset, batch_size=args.batch_size,
                                             shuffle=True, num_workers=int(args.workers))
     dataloader_test = torch.utils.data.DataLoader(dataset_test, batch_size=args.batch_size,
