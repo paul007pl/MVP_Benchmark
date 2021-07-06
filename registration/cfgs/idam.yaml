@@ -27,7 +27,7 @@ rri_size: 20
 num_groups: 16
 num_points: 2048
 # use_tnet: False
-use_fpfh: False
+use_fpfh: True
 use_ppf: False
 descriptor_size: 64
 num_iters: 3

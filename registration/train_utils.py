@@ -84,3 +84,18 @@ def rmse_loss(pts, T, T_gt):
 	pts_pred = pts @ T[:, :3, :3].transpose(1, 2) + T[:, :3, 3].unsqueeze(1)
 	pts_gt = pts @ T_gt[:, :3, :3].transpose(1, 2) + T_gt[:, :3, 3].unsqueeze(1)
 	return torch.norm(pts_pred - pts_gt, dim=2).mean(dim=1)
+
+
+def rotation_geodesic_error(m1, m2):
+	batch=m1.shape[0]
+	m = torch.bmm(m1, m2.transpose(1,2)) #batch*3*3
+
+	cos = (  m[:,0,0] + m[:,1,1] + m[:,2,2] - 1 )/2
+	cos = torch.min(cos, torch.autograd.Variable(torch.ones(batch).cuda()) )
+	cos = torch.max(cos, torch.autograd.Variable(torch.ones(batch).cuda())*-1 )
+
+	theta = torch.acos(cos)
+
+	#theta = torch.min(theta, 2*np.pi - theta)
+
+	return theta

@@ -4,7 +4,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 from visu_utils import visualize
 from train_utils import *
-from model_utils import get_rri_cluster, rotation_geodesic_error
+from model_utils import get_rri_cluster, Conv1DBNReLU, FCBNReLU
 
 
 def gmm_params(gamma, pts):
@@ -55,29 +55,13 @@ def gmm_register(pi_s, mu_s, mu_t, sigma_t):
 	return T
 
 
-class Conv1dBNReLU(nn.Sequential):
-	def __init__(self, in_planes, out_planes):
-		super(Conv1dBNReLU, self).__init__(
-			nn.Conv1d(in_planes, out_planes, kernel_size=1, bias=False),
-			nn.BatchNorm1d(out_planes),
-			nn.ReLU(inplace=True))
-
-
-class FCBNReLU(nn.Sequential):
-	def __init__(self, in_planes, out_planes):
-		super(FCBNReLU, self).__init__(
-			nn.Linear(in_planes, out_planes, bias=False),
-			nn.BatchNorm1d(out_planes),
-			nn.ReLU(inplace=True))
-
-
 class TNet(nn.Module):
 	def __init__(self):
 		super(TNet, self).__init__()
 		self.encoder = nn.Sequential(
-			Conv1dBNReLU(3, 64),
-			Conv1dBNReLU(64, 128),
-			Conv1dBNReLU(128, 256))
+			Conv1DBNReLU(3, 64),
+			Conv1DBNReLU(64, 128),
+			Conv1DBNReLU(128, 256))
 		self.decoder = nn.Sequential(
 			FCBNReLU(256, 128),
 			FCBNReLU(128, 64),
@@ -106,14 +90,14 @@ class PointNet(nn.Module):
 		self.tnet = TNet() if self.use_tnet else None
 		d_input = args.rri_size * 4 if args.use_rri else 3
 		self.encoder = nn.Sequential(
-			Conv1dBNReLU(d_input, 64),
-			Conv1dBNReLU(64, 128),
-			Conv1dBNReLU(128, 256),
-			Conv1dBNReLU(256, 1024))
+			Conv1DBNReLU(d_input, 64),
+			Conv1DBNReLU(64, 128),
+			Conv1DBNReLU(128, 256),
+			Conv1DBNReLU(256, 1024))
 		self.decoder = nn.Sequential(
-			Conv1dBNReLU(1024 * 2, 512),
-			Conv1dBNReLU(512, 256),
-			Conv1dBNReLU(256, 128),
+			Conv1DBNReLU(1024 * 2, 512),
+			Conv1DBNReLU(512, 256),
+			Conv1DBNReLU(256, 128),
 			nn.Conv1d(128, args.num_groups, kernel_size=1))
 
 	def forward(self, pts):

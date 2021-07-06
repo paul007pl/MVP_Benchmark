@@ -9,7 +9,7 @@ from model_utils import *
 
 
 sys.path.append("../utils")
-from mm3d_pn2 import three_interpolate, furthest_point_sample, gather_points, grouping_operation, three_nn
+from mm3d_pn2 import three_interpolate, furthest_point_sample, gather_points, grouping_operation
 
 _EPS = 1e-5  # To prevent division by zero
 

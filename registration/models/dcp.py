@@ -12,72 +12,10 @@ import numpy as np
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from torch.autograd import Variable
-# from util import quat2mat
 from train_utils import *
-from model_utils import rotation_geodesic_error
+from model_utils import clones, attention, get_graph_feature, SVDHead
 
 # Part of the code is referred from: http://nlp.seas.harvard.edu/2018/04/03/attention.html#positional-encoding
-
-
-def clones(module, N):
-	return nn.ModuleList([copy.deepcopy(module) for _ in range(N)])
-
-
-def attention(query, key, value, mask=None, dropout=None):
-	d_k = query.size(-1)
-	# scores = torch.matmul(query, key.transpose(-2, -1).contiguous()) / math.sqrt(d_k)
-	scores = (torch.matmul(query.cpu(), key.transpose(-2, -1).contiguous().cpu()) / math.sqrt(d_k)).cuda()
-	# B x 4 x points x points
-	if mask is not None:
-		scores = scores.masked_fill(mask == 0, -1e9)
-	p_attn = F.softmax(scores, dim=-1)
-	return torch.matmul(p_attn, value), p_attn
-# attention is re-weighted to [0~1] with a sum=1
-# B x 4 x points x 128; B x 4 x points x points; 
-
-
-def nearest_neighbor(src, dst):
-	inner = -2 * torch.matmul(src.transpose(1, 0).contiguous(), dst)  # src, dst (num_dims, num_points)
-	distances = -torch.sum(src ** 2, dim=0, keepdim=True).transpose(1, 0).contiguous() - inner - torch.sum(dst ** 2,
-																										   dim=0,
-																										   keepdim=True)
-	distances, indices = distances.topk(k=1, dim=-1)
-	return distances, indices
-
-
-def knn(x, k):
-	inner = -2 * torch.matmul(x.transpose(2, 1).contiguous(), x)
-	xx = torch.sum(x ** 2, dim=1, keepdim=True)
-	pairwise_distance = -xx - inner - xx.transpose(2, 1).contiguous()
-
-	idx = pairwise_distance.topk(k=k, dim=-1)[1]  # (batch_size, num_points, k)
-	return idx
-
-
-def get_graph_feature(x, k=20):
-	# x = x.squeeze()
-	idx = knn(x, k=k)  # (batch_size, num_points, k)
-	batch_size, num_points, _ = idx.size()
-	device = torch.device('cuda')
-
-	idx_base = torch.arange(0, batch_size, device=device).view(-1, 1, 1) * num_points
-
-	idx = idx + idx_base
-
-	idx = idx.view(-1)
-
-	_, num_dims, _ = x.size()
-
-	x = x.transpose(2,
-					1).contiguous()  # (batch_size, num_points, num_dims)  -> (batch_size*num_points, num_dims) #   batch_size * num_points * k + range(0, batch_size*num_points)
-	feature = x.view(batch_size * num_points, -1)[idx, :]
-	feature = feature.view(batch_size, num_points, k, num_dims)
-	x = x.view(batch_size, num_points, 1, num_dims).repeat(1, 1, k, 1)
-
-	feature = torch.cat((feature, x), dim=3).permute(0, 3, 1, 2)
-
-	return feature
 
 
 class EncoderDecoder(nn.Module):
@@ -266,29 +204,6 @@ class PositionwiseFeedForward(nn.Module):
 		return self.w_2(self.norm(F.relu(self.w_1(x)).transpose(2, 1).contiguous()).transpose(2, 1).contiguous())
 
 
-class PointNet(nn.Module):
-	def __init__(self, emb_dims=512):
-		super(PointNet, self).__init__()
-		self.conv1 = nn.Conv1d(3, 64, kernel_size=1, bias=False)
-		self.conv2 = nn.Conv1d(64, 64, kernel_size=1, bias=False)
-		self.conv3 = nn.Conv1d(64, 64, kernel_size=1, bias=False)
-		self.conv4 = nn.Conv1d(64, 128, kernel_size=1, bias=False)
-		self.conv5 = nn.Conv1d(128, emb_dims, kernel_size=1, bias=False)
-		self.bn1 = nn.BatchNorm1d(64)
-		self.bn2 = nn.BatchNorm1d(64)
-		self.bn3 = nn.BatchNorm1d(64)
-		self.bn4 = nn.BatchNorm1d(128)
-		self.bn5 = nn.BatchNorm1d(emb_dims)
-
-	def forward(self, x):
-		x = F.relu(self.bn1(self.conv1(x)))
-		x = F.relu(self.bn2(self.conv2(x)))
-		x = F.relu(self.bn3(self.conv3(x)))
-		x = F.relu(self.bn4(self.conv4(x)))
-		x = F.relu(self.bn5(self.conv5(x)))
-		return x
-
-
 class DGCNN(nn.Module):
 	def __init__(self, emb_dims=512):
 		super(DGCNN, self).__init__()
@@ -308,56 +223,15 @@ class DGCNN(nn.Module):
 		x = get_graph_feature(x)
 		x = F.relu(self.bn1(self.conv1(x)))
 		x1 = x.max(dim=-1, keepdim=True)[0]
-
 		x = F.relu(self.bn2(self.conv2(x)))
 		x2 = x.max(dim=-1, keepdim=True)[0]
-
 		x = F.relu(self.bn3(self.conv3(x)))
 		x3 = x.max(dim=-1, keepdim=True)[0]
-
 		x = F.relu(self.bn4(self.conv4(x)))
 		x4 = x.max(dim=-1, keepdim=True)[0]
-
 		x = torch.cat((x1, x2, x3, x4), dim=1)
-
 		x = F.relu(self.bn5(self.conv5(x))).view(batch_size, -1, num_points)
 		return x
-
-
-class MLPHead(nn.Module):
-	def __init__(self, args):
-		super(MLPHead, self).__init__()
-		emb_dims = args.emb_dims
-		self.emb_dims = emb_dims
-		self.nn = nn.Sequential(nn.Linear(emb_dims * 2, emb_dims // 2),
-								nn.BatchNorm1d(emb_dims // 2),
-								nn.ReLU(),
-								nn.Linear(emb_dims // 2, emb_dims // 4),
-								nn.BatchNorm1d(emb_dims // 4),
-								nn.ReLU(),
-								nn.Linear(emb_dims // 4, emb_dims // 8),
-								nn.BatchNorm1d(emb_dims // 8),
-								nn.ReLU())
-		self.proj_rot = nn.Linear(emb_dims // 8, 4)
-		self.proj_trans = nn.Linear(emb_dims // 8, 3)
-
-	def forward(self, *input):
-		src_embedding = input[0]
-		tgt_embedding = input[1]
-		embedding = torch.cat((src_embedding, tgt_embedding), dim=1)
-		embedding = self.nn(embedding.max(dim=-1)[0])
-		rotation = self.proj_rot(embedding)
-		rotation = rotation / torch.norm(rotation, p=2, dim=1, keepdim=True)
-		translation = self.proj_trans(embedding)
-		return quat2mat(rotation), translation
-
-
-class Identity(nn.Module):
-	def __init__(self):
-		super(Identity, self).__init__()
-
-	def forward(self, *input):
-		return input
 
 
 class Transformer(nn.Module):
@@ -372,10 +246,7 @@ class Transformer(nn.Module):
 		attn = MultiHeadedAttention(self.n_heads, self.emb_dims)
 		ff = PositionwiseFeedForward(self.emb_dims, self.ff_dims, self.dropout)
 		self.model = EncoderDecoder(Encoder(EncoderLayer(self.emb_dims, c(attn), c(ff), self.dropout), self.N),
-									Decoder(DecoderLayer(self.emb_dims, c(attn), c(attn), c(ff), self.dropout), self.N),
-									nn.Sequential(),
-									nn.Sequential(),
-									nn.Sequential())
+						Decoder(DecoderLayer(self.emb_dims, c(attn), c(attn), c(ff), self.dropout), self.N), nn.Sequential(), nn.Sequential(), nn.Sequential())
 
 	def forward(self, *input):
 		src = input[0]
@@ -387,109 +258,41 @@ class Transformer(nn.Module):
 		return src_embedding, tgt_embedding
 
 
-class SVDHead(nn.Module):
-	def __init__(self, args):
-		super(SVDHead, self).__init__()
-		self.emb_dims = 512 # 512
-		self.reflect = nn.Parameter(torch.eye(3), requires_grad=False)
-		self.reflect[2, 2] = -1
-
-	def forward(self, *input):
-		src_embedding = input[0]
-		tgt_embedding = input[1]
-		src = input[2]
-		tgt = input[3]
-		batch_size = src.size(0)
-
-		d_k = src_embedding.size(1) # 512
-		scores = torch.matmul(src_embedding.transpose(2, 1).contiguous(), tgt_embedding) / math.sqrt(d_k)
-		scores = torch.softmax(scores, dim=2)
-		# b x points x points
-
-		src_corr = torch.matmul(tgt, scores.transpose(2, 1).contiguous())
-
-		src_centered = src - src.mean(dim=2, keepdim=True)
-
-		src_corr_centered = src_corr - src_corr.mean(dim=2, keepdim=True)
-
-		H = torch.matmul(src_centered, src_corr_centered.transpose(2, 1).contiguous())
-		# b x 3 x 3
-
-		U, S, V = [], [], []
-		R = []
-
-		for i in range(src.size(0)):
-			u, s, v = torch.svd(H[i])
-			r = torch.matmul(v, u.transpose(1, 0).contiguous())
-			r_det = torch.det(r)
-			if r_det < 0:
-				u, s, v = torch.svd(H[i])
-				v = torch.matmul(v, self.reflect)
-				r = torch.matmul(v, u.transpose(1, 0).contiguous())
-				# r = r * self.reflect
-			R.append(r)
-
-			U.append(u)
-			S.append(s)
-			V.append(v)
-
-		U = torch.stack(U, dim=0)
-		V = torch.stack(V, dim=0)
-		S = torch.stack(S, dim=0)
-		R = torch.stack(R, dim=0)
-
-		t = torch.matmul(-R, src.mean(dim=2, keepdim=True)) + src_corr.mean(dim=2, keepdim=True)
-		return R, t.view(batch_size, 3)
-
-
 class Model(nn.Module):
 	def __init__(self, args):
 		super(Model, self).__init__()
 		self.emb_dims = 512
-		# self.emb_dims = args.emb_dims #512
-		# self.cycle = args.cycle #False
 		self.emb_nn = DGCNN(emb_dims=512)
-
 		self.pointer = Transformer(args=args)
 		self.head = SVDHead(args=args)
 
 	def forward(self, *input):
 		src = input[0]
 		tgt = input[1]
-
 		feat1 = src[..., :3].transpose(1, 2)
 		feat2 = tgt[..., :3].transpose(1, 2)
-
 		src = src[..., :3]
 		tgt = tgt[..., :3]
-
 		T_gt = input[2]
 
 		src_embedding = self.emb_nn(feat1)
 		tgt_embedding = self.emb_nn(feat2)
-
 		src_embedding_p, tgt_embedding_p = self.pointer(src_embedding, tgt_embedding)
-
 		src_embedding = src_embedding + src_embedding_p
 		tgt_embedding = tgt_embedding + tgt_embedding_p
 
-		rotation_ab, translation_ab = self.head(src_embedding, tgt_embedding, feat1, feat2)
-
-		# rotation_ba = rotation_ab.transpose(2, 1).contiguous()
-        # translation_ba = -torch.matmul(rotation_ba, translation_ab.unsqueeze(2)).squeeze(2)
+		scores = torch.matmul(src_embedding.transpose(2, 1).contiguous(), tgt_embedding) / math.sqrt(self.emb_dims)
+		scores = torch.softmax(scores, dim=2)
+		# b x points x points
+		feat1_corr = torch.matmul(feat2, scores.transpose(2, 1).contiguous())
+		rotation_ab, translation_ab = self.head(feat1, feat1_corr)
 
 		T_12 = rt_to_transformation(rotation_ab, translation_ab.unsqueeze(2))
-		# T_21 = rt_to_transformation(rotation_ba, translation_ba)
-
 		r_err = rotation_error(T_12[:, :3, :3], T_gt[:, :3, :3])
 		t_err = translation_error(T_12[:, :3, 3], T_gt[:, :3, 3])
 		rmse = rmse_loss(src, T_12, T_gt)
-
 		eye = torch.eye(4).expand_as(T_gt).to(T_gt.device)
 		mse = F.mse_loss(T_12 @ torch.inverse(T_gt), eye)
-
 		loss = mse
-
 		rt_mse = (rotation_geodesic_error(T_12[:, :3, :3], T_gt[:, :3, :3]) + translation_error(T_12[:, :3, 3], T_gt[:, :3, 3]))
-		
 		return loss, r_err, t_err, rmse, rt_mse
