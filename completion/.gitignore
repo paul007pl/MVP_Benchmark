@@ -4,3 +4,4 @@
 */**/__pycache__
 /__pycache__/*
 *.h5
+*.backup

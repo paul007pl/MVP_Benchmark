@@ -444,10 +444,10 @@ class Model(nn.Module):
         xy_kernel = self.compute_kernel(x, y)
         return torch.mean(x_kernel) + torch.mean(y_kernel) - 2 * torch.mean(xy_kernel)
 
-    def forward(self, x, gt, is_training=True, mean_feature=None, alpha=None):
+    def forward(self, x, gt=None, prefix="train", mean_feature=None, alpha=None):
         num_input = x.size()[2]
 
-        if is_training:
+        if prefix=="train":
             y = gather_points(gt.transpose(1, 2).contiguous(), furthest_point_sample(gt, num_input))
             gt = torch.cat([gt, gt], dim=0)
             points = torch.cat([x, y], dim=0)
@@ -456,7 +456,7 @@ class Model(nn.Module):
             points = x
         feat = self.encoder(points)
 
-        if is_training:
+        if prefix=="train":
             feat_x, feat_y = feat.chunk(2)
             o_x = self.posterior_infer2(self.posterior_infer1(feat_x))
             q_mu, q_std = torch.split(o_x, self.size_z, dim=1)
@@ -491,7 +491,7 @@ class Model(nn.Module):
         coarse = coarse.transpose(1, 2).contiguous()
         fine = fine.transpose(1, 2).contiguous()
 
-        if is_training:
+        if prefix=="train":
             if self.distribution_loss == 'MMD':
                 z_m = m_distribution.rsample()
                 z_q = q_distribution.rsample()
@@ -516,10 +516,12 @@ class Model(nn.Module):
             total_train_loss = loss1.mean() * 10 + loss2.mean() * 0.5 + loss3.mean() + loss4.mean() * alpha
             total_train_loss += (dl_rec.mean() + dl_g.mean()) * 20
             return fine, loss4, total_train_loss
-        else:
+        elif prefix=="val":
             if self.eval_emd:
                 emd = calc_emd(fine, gt, eps=0.004, iterations=3000)
             else:
                 emd = 0
             cd_p, cd_t, f1 = calc_cd(fine, gt, calc_f1=True)
             return {'out1': coarse_raw, 'out2': fine, 'emd': emd, 'cd_p': cd_p, 'cd_t': cd_t, 'f1': f1}
+        elif prefix=="test":
+            return {'result': fine}

@@ -14,6 +14,9 @@ import sys
 import argparse
 from dataset import MVP_CP
 
+import warnings
+warnings.filterwarnings("ignore")
+
 
 def train():
     logging.info(str(args))
@@ -25,8 +28,8 @@ def train():
     train_loss_meter = AverageValueMeter()
     val_loss_meters = {m: AverageValueMeter() for m in metrics}
 
-    dataset = MVP_CP(train=True, npoints=args.num_points)
-    dataset_test = MVP_CP(train=False, npoints=args.num_points)
+    dataset = MVP_CP(prefix="train")
+    dataset_test = MVP_CP(prefix="val")
     dataloader = torch.utils.data.DataLoader(dataset, batch_size=args.batch_size,
                                             shuffle=True, num_workers=int(args.workers))
     dataloader_test = torch.utils.data.DataLoader(dataset_test, batch_size=args.batch_size,
@@ -165,8 +168,7 @@ def val(net, curr_epoch_num, val_loss_meters, dataloader_test, best_epoch_losses
             inputs = inputs.float().cuda()
             gt = gt.float().cuda()
             inputs = inputs.transpose(2, 1).contiguous()
-            # result_dict = net(inputs, gt, is_training=False, mean_feature=mean_feature)
-            result_dict = net(inputs, gt, is_training=False)
+            result_dict = net(inputs, gt, prefix="val")
             for k, v in val_loss_meters.items():
                 v.update(result_dict[k].mean().item(), curr_batch_size)
 

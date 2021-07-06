@@ -3,17 +3,25 @@ import os
 import sys
 import importlib
 import argparse
+import numpy as np
+import h5py
+import subprocess
+
+from numpy.lib.index_tricks import AxisConcatenator
 import munch
 import yaml
 # from utils.vis_utils import plot_single_pcd
 # from utils.train_utils import *
 from vis_utils import plot_single_pcd
 from train_utils import *
-from dataset import ShapeNetH5
+from dataset import MVP_CP
+
+import warnings
+warnings.filterwarnings("ignore")
 
 
 def test():
-    dataset_test = ShapeNetH5(train=False, npoints=args.num_points)
+    dataset_test = MVP_CP(prefix="test")
     dataloader_test = torch.utils.data.DataLoader(dataset_test, batch_size=args.batch_size,
                                                   shuffle=False, num_workers=int(args.workers))
     dataset_length = len(dataset_test)
@@ -27,65 +35,33 @@ def test():
     logging.info("%s's previous weights loaded." % args.model_name)
     net.eval()
 
-    metrics = ['cd_p', 'cd_t', 'emd', 'f1']
-    test_loss_meters = {m: AverageValueMeter() for m in metrics}
-    test_loss_cat = torch.zeros([8, 4], dtype=torch.float32).cuda()
-    cat_num = torch.ones([8, 1], dtype=torch.float32).cuda() * 150
-    cat_name = ['airplane', 'cabinet', 'car', 'chair', 'lamp', 'sofa', 'table', 'vessel']
-    idx_to_plot = [i for i in range(0, 1200, 75)]
-
     logging.info('Testing...')
-    if args.save_vis:
-        save_gt_path = os.path.join(log_dir, 'pics', 'gt')
-        save_partial_path = os.path.join(log_dir, 'pics', 'partial')
-        save_completion_path = os.path.join(log_dir, 'pics', 'completion')
-        os.makedirs(save_gt_path, exist_ok=True)
-        os.makedirs(save_partial_path, exist_ok=True)
-        os.makedirs(save_completion_path, exist_ok=True)
     with torch.no_grad():
+        results_list = []
         for i, data in enumerate(dataloader_test):
             
-            label, inputs_cpu, gt_cpu = data
-            # mean_feature = None
+            label, inputs_cpu = data
 
             inputs = inputs_cpu.float().cuda()
-            gt = gt_cpu.float().cuda()
             inputs = inputs.transpose(2, 1).contiguous()
-            # result_dict = net(inputs, gt, is_training=False, mean_feature=mean_feature)
-            result_dict = net(inputs, gt, is_training=False)
-            for k, v in test_loss_meters.items():
-                v.update(result_dict[k].mean().item())
 
-            for j, l in enumerate(label):
-                for ind, m in enumerate(metrics):
-                    test_loss_cat[int(l), ind] = result_dict[m][int(j)]
+            result_dict = net(inputs, prefix="test")
+            results_list.append(result_dict['result'].cpu().numpy())
 
             if i % args.step_interval_to_print == 0:
                 logging.info('test [%d/%d]' % (i, dataset_length / args.batch_size))
 
-            if args.save_vis:
-                for j in range(args.batch_size):
-                    idx = i * args.batch_size + j
-                    if idx in idx_to_plot:
-                        pic = 'object_%d.png' % idx
-                        plot_single_pcd(result_dict['out2'][j].cpu().numpy(), os.path.join(save_completion_path, pic))
-                        plot_single_pcd(gt_cpu[j], os.path.join(save_gt_path, pic))
-                        plot_single_pcd(inputs_cpu[j].cpu().numpy(), os.path.join(save_partial_path, pic))
+        all_results = np.concatenate(results_list, axis=0)
+        print(all_results.shape)
 
-        logging.info('Loss per category:')
-        category_log = ''
-        for i in range(8):
-            category_log += 'category name: %s' % (cat_name[i])
-            for ind, m in enumerate(metrics):
-                scale_factor = 1 if m == 'f1' else 10000
-                category_log += '%s: %f' % (m, test_loss_cat[i, 0] / cat_num[i] * scale_factor)
-        logging.info(category_log)
-
-        logging.info('Overview results:')
-        overview_log = ''
-        for metric, meter in test_loss_meters.items():
-            overview_log += '%s: %f ' % (metric, meter.avg)
-        logging.info(overview_log)
+        with h5py.File(log_dir + '/results.h5', 'w') as f:
+            f.create_dataset('results', data=all_results)
+        
+        cur_dir = os.getcwd()
+        cmd = "cd %s; zip -r submission.zip results.h5 ; cd %s" % (log_dir, cur_dir)
+        process = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE,stderr=subprocess.PIPE)
+        _, _ = process.communicate()
+        print("Submission file has been saved to %s/submission.zip" % (log_dir))
 
 
 if __name__ == "__main__":

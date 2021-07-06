@@ -85,13 +85,13 @@ class Model(nn.Module):
         self.encoder = PCN_encoder()
         self.decoder = PCN_decoder(num_coarse, self.num_points, self.scale, self.cat_feature_num)
 
-    def forward(self, x, gt, is_training=True, mean_feature=None, alpha=None):
+    def forward(self, x, gt=None, prefix="train", mean_feature=None, alpha=None):
         feat = self.encoder(x)
         out1, out2 = self.decoder(feat)
         out1 = out1.transpose(1, 2).contiguous()
         out2 = out2.transpose(1, 2).contiguous()
 
-        if is_training:
+        if prefix=="train":
             if self.train_loss == 'emd':
                 loss1 = calc_emd(out1, gt)
                 loss2 = calc_emd(out2, gt)
@@ -103,10 +103,12 @@ class Model(nn.Module):
 
             total_train_loss = loss1.mean() + loss2.mean() * alpha
             return out2, loss2, total_train_loss
-        else:
+        elif prefix=="val":
             if self.eval_emd:
                 emd = calc_emd(out2, gt, eps=0.004, iterations=3000)
             else:
                 emd = 0
             cd_p, cd_t, f1 = calc_cd(out2, gt, calc_f1=True)
             return {'out1': out1, 'out2': out2, 'emd': emd, 'cd_p': cd_p, 'cd_t': cd_t, 'f1': f1}
+        else:
+            return {'result': out2}

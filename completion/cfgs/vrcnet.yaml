@@ -2,7 +2,9 @@ batch_size: 32
 workers: 0
 nepoch: 100
 model_name: vrcnet
-load_model: null
+load_model: ./log/vrcnet_cd_debug_2021-06-18T16:36:20/best_cd_t_network.pth
+# load_model: ./log/vrcnet_cd_debug_2021-06-18T10:24:34/best_cd_t_network.pth
+# load_model: null
 start_epoch: 0
 num_points: 2048
 work_dir: log/
@@ -38,5 +40,5 @@ num_fps: 2048
 num_coarse: 2048
 
 # test
-save_vis: True
+save_vis: False
 eval_emd: False

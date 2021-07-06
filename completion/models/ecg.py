@@ -220,7 +220,7 @@ class Model(nn.Module):
         self.encoder = PCN_encoder()
         self.decoder = ECG_decoder(num_coarse, self.num_points, num_input)
 
-    def forward(self, x, gt, is_training=True, mean_feature=None, alpha=None):
+    def forward(self, x, gt=None, prefix="train", mean_feature=None, alpha=None):
         if mean_feature:
             raise NotImplementedError
         feat = self.encoder(x)
@@ -230,7 +230,7 @@ class Model(nn.Module):
         uniform_loss1 = get_uniform_loss(out1)
         uniform_loss2 = get_uniform_loss(out2)
 
-        if is_training:
+        if prefix=="train":
             if self.train_loss == 'emd':
                 loss1 = calc_emd(out1, gt)
                 loss2 = calc_emd(out2, gt)
@@ -243,10 +243,12 @@ class Model(nn.Module):
             total_train_loss = loss1.mean() + uniform_loss1.mean() * 0.1 + \
                                (loss2.mean() + uniform_loss2.mean() * 0.1) * alpha
             return out2, loss2, total_train_loss
-        else:
+        elif prefix=="val":
             if self.eval_emd:
                 emd = calc_emd(out2, gt, eps=0.004, iterations=3000)
             else:
                 emd = 0
             cd_p, cd_t, f1 = calc_cd(out2, gt, calc_f1=True)
             return {'out1': out1, 'out2': out2, 'emd': emd, 'cd_p': cd_p, 'cd_t': cd_t, 'f1': f1}
+        else:
+            return {'result': out2}
