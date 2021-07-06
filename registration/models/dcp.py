@@ -266,14 +266,11 @@ class Model(nn.Module):
 		self.pointer = Transformer(args=args)
 		self.head = SVDHead(args=args)
 
-	def forward(self, *input):
-		src = input[0]
-		tgt = input[1]
+	def forward(self, src, tgt, T_gt=None, prefix="train"):
 		feat1 = src[..., :3].transpose(1, 2)
 		feat2 = tgt[..., :3].transpose(1, 2)
 		src = src[..., :3]
 		tgt = tgt[..., :3]
-		T_gt = input[2]
 
 		src_embedding = self.emb_nn(feat1)
 		tgt_embedding = self.emb_nn(feat2)
@@ -288,11 +285,15 @@ class Model(nn.Module):
 		rotation_ab, translation_ab = self.head(feat1, feat1_corr)
 
 		T_12 = rt_to_transformation(rotation_ab, translation_ab.unsqueeze(2))
-		r_err = rotation_error(T_12[:, :3, :3], T_gt[:, :3, :3])
-		t_err = translation_error(T_12[:, :3, 3], T_gt[:, :3, 3])
-		rmse = rmse_loss(src, T_12, T_gt)
-		eye = torch.eye(4).expand_as(T_gt).to(T_gt.device)
-		mse = F.mse_loss(T_12 @ torch.inverse(T_gt), eye)
-		loss = mse
-		rt_mse = (rotation_geodesic_error(T_12[:, :3, :3], T_gt[:, :3, :3]) + translation_error(T_12[:, :3, 3], T_gt[:, :3, 3]))
-		return loss, r_err, t_err, rmse, rt_mse
+		
+		if T_gt == None:
+			return T_12
+		else:
+			r_err = rotation_error(T_12[:, :3, :3], T_gt[:, :3, :3])
+			t_err = translation_error(T_12[:, :3, 3], T_gt[:, :3, 3])
+			rmse = rmse_loss(src, T_12, T_gt)
+			eye = torch.eye(4).expand_as(T_gt).to(T_gt.device)
+			mse = F.mse_loss(T_12 @ torch.inverse(T_gt), eye)
+			loss = mse
+			rt_mse = (rotation_geodesic_error(T_12[:, :3, :3], T_gt[:, :3, :3]) + translation_error(T_12[:, :3, 3], T_gt[:, :3, 3]))
+			return loss, r_err, t_err, rmse, rt_mse

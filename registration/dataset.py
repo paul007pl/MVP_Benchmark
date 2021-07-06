@@ -50,38 +50,44 @@ class MVP_RG(Dataset):
         self.max_angle = args.max_angle / 180 * np.pi
         self.max_trans = args.max_trans
 
-        self.match_level = np.array(f['match_level'][:].astype('int32'))
         self.label = f['cat_labels'][:].astype('int32')
-
-        match_id = []
-        for i in range(len(f['match_id'].keys())):
-            ds_data = f['match_id'][str(i)][:]
-            match_id.append(ds_data)
-        self.match_id = np.array(match_id, dtype=object)
-
-        if self.prefix == "train":
-            self.src = np.array(f['src'][:].astype('float32'))
-            self.tgt = np.array(f['tgt'][:].astype('float32'))
-            if args.max_angle > 45:
-                self.rot_level = int(1)
-            else:
-                self.rot_level = int(0)
-        else:
+        if self.prefix == "test":
             self.src = np.array(f['rotated_src'][:].astype('float32'))
             self.tgt = np.array(f['rotated_tgt'][:].astype('float32'))
-            self.transforms = np.array(f['transforms'][:].astype('float32'))
-            self.rot_level = np.array(f['rot_level'][:].astype('int32'))
+        else:
+            self.match_level = np.array(f['match_level'][:].astype('int32'))
+
+            match_id = []
+            for i in range(len(f['match_id'].keys())):
+                ds_data = f['match_id'][str(i)][:]
+                match_id.append(ds_data)
+            self.match_id = np.array(match_id, dtype=object)
+
+            if self.prefix == "train":
+                self.src = np.array(f['src'][:].astype('float32'))
+                self.tgt = np.array(f['tgt'][:].astype('float32'))
+                if args.max_angle > 45:
+                    self.rot_level = int(1)
+                else:
+                    self.rot_level = int(0)
+            elif self.prefix == "val":
+                self.src = np.array(f['rotated_src'][:].astype('float32'))
+                self.tgt = np.array(f['rotated_tgt'][:].astype('float32'))
+                self.transforms = np.array(f['transforms'][:].astype('float32'))
+                self.rot_level = np.array(f['rot_level'][:].astype('int32'))
 
         f.close()
         
         if args.category:
             self.src = self.src[self.label==args.category]
             self.tgt = self.tgt[self.label==args.category]
-            self.match_id = self.match_id[self.label==args.category]
-            self.match_level = self.match_level[self.label==args.category]
-            if self.prefix == False:
-                self.transforms = self.transforms[self.label==args.category]
-                self.rot_level = self.rot_level[self.label==args.category]
+
+            if self.prefix is not "test":
+                self.match_id = self.match_id[self.label==args.category]
+                self.match_level = self.match_level[self.label==args.category]
+                if self.prefix == False:
+                    self.transforms = self.transforms[self.label==args.category]
+                    self.rot_level = self.rot_level[self.label==args.category]
             self.label = self.label[self.label==args.category]
 
         # print(self.src.shape, self.tgt.shape, self.match_id.shape, self.match_level.shape, self.label.shape)
@@ -92,29 +98,31 @@ class MVP_RG(Dataset):
     def __getitem__(self, index):
         src = self.src[index]
         tgt = self.tgt[index]
-        match_level = self.match_level[index]
 
         if self.prefix == "train":
             transform = random_pose(self.max_angle, self.max_trans / 2)
             pose1 = random_pose(np.pi, self.max_trans)
             pose2 = transform @ pose1
-
             src = src @ pose1[:3, :3].T + pose1[:3, 3]
             tgt = tgt @ pose2[:3, :3].T + pose2[:3, 3]
-
             rot_level = self.rot_level
-        
-        else:
+            match_level = self.match_level[index]
+
+        elif self.prefix == "val":
             transform = self.transforms[index]
             rot_level = self.rot_level[index]
+            match_level = self.match_level[index]
 
         # src = np.random.permutation(src)
         # tgt = np.random.permutation(tgt)
 
         src = torch.from_numpy(src)
         tgt = torch.from_numpy(tgt)
-        transform = torch.from_numpy(transform)
-        match_level = match_level
-        rot_level = rot_level
 
-        return src, tgt, transform, match_level, rot_level
+        if self.prefix is not "test":
+            transform = torch.from_numpy(transform)
+            match_level = match_level
+            rot_level = rot_level
+            return src, tgt, transform, match_level, rot_level
+        else:
+            return src, tgt

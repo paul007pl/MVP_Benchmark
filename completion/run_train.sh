@@ -1,6 +1,6 @@
 #!/bin/bash
 
-job_name=benchmark
+job_name=mvp_completion_train
 gpus=$2
 
 srun -p dsta --mpi=pmi2 --gres=gpu:${gpus} -n1 \

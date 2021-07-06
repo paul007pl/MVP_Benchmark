@@ -2,7 +2,8 @@ batch_size: 32
 workers: 0
 nepoch: 100
 model_name: idam
-load_model: null
+load_model: ./log/idam_mvp_debug_2021-06-22T02:59:30/best_RotE_network.pth
+# load_model: null
 start_epoch: 0
 work_dir: log/
 flag: debug
@@ -27,7 +28,7 @@ rri_size: 20
 num_groups: 16
 num_points: 2048
 # use_tnet: False
-use_fpfh: True
+use_fpfh: False
 use_ppf: False
 descriptor_size: 64
 num_iters: 3

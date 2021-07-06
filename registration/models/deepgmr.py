@@ -126,7 +126,7 @@ class Model(nn.Module):
 			self.t_err_12 = translation_error(self.T_12[:, :3, 3], T_gt[:, :3, 3])
 			return self.r_err_12.mean().item(), self.t_err_12.mean().item()
 
-	def forward(self, pts1, pts2, T_gt):
+	def forward(self, pts1, pts2, T_gt=None, prefix="train"):
 		if self.use_rri:
 			self.pts1 = pts1
 			self.pts2 = pts2
@@ -146,22 +146,25 @@ class Model(nn.Module):
 		self.pi2, self.mu2, self.sigma2 = gmm_params(self.gamma2, self.pts2)
 
 		self.T_12 = gmm_register(self.pi1, self.mu1, self.mu2, self.sigma2)
-		self.T_21 = gmm_register(self.pi2, self.mu2, self.mu1, self.sigma1)
-		self.T_gt = T_gt
+		if prefix=="test":
+			return self.T_12
+		else:
+			self.T_21 = gmm_register(self.pi2, self.mu2, self.mu1, self.sigma1)
+			self.T_gt = T_gt
 
-		eye = torch.eye(4).expand_as(self.T_gt).to(self.T_gt.device)
-		self.mse1 = F.mse_loss(self.T_12 @ torch.inverse(T_gt), eye)
-		self.mse2 = F.mse_loss(self.T_21 @ T_gt, eye)
-		loss = self.mse1 + self.mse2
+			eye = torch.eye(4).expand_as(self.T_gt).to(self.T_gt.device)
+			self.mse1 = F.mse_loss(self.T_12 @ torch.inverse(T_gt), eye)
+			self.mse2 = F.mse_loss(self.T_21 @ T_gt, eye)
+			loss = self.mse1 + self.mse2
 
-		self.r_err = rotation_error(self.T_12[:, :3, :3], T_gt[:, :3, :3])
-		self.t_err = translation_error(self.T_12[:, :3, 3], T_gt[:, :3, 3])
-		# self.rmse = rmse_loss(self.pts1[:, :100], self.T_12, T_gt)
-		self.rmse = rmse_loss(self.pts1, self.T_12, T_gt)
+			self.r_err = rotation_error(self.T_12[:, :3, :3], T_gt[:, :3, :3])
+			self.t_err = translation_error(self.T_12[:, :3, 3], T_gt[:, :3, 3])
+			# self.rmse = rmse_loss(self.pts1[:, :100], self.T_12, T_gt)
+			self.rmse = rmse_loss(self.pts1, self.T_12, T_gt)
 
-		self.mse = (rotation_geodesic_error(self.T_12[:, :3, :3], T_gt[:, :3, :3]) + translation_error(self.T_12[:, :3, 3], T_gt[:, :3, 3]))
+			self.mse = (rotation_geodesic_error(self.T_12[:, :3, :3], T_gt[:, :3, :3]) + translation_error(self.T_12[:, :3, 3], T_gt[:, :3, 3]))
 
-		return loss, self.r_err, self.t_err, self.rmse, self.mse
+			return loss, self.r_err, self.t_err, self.rmse, self.mse
 
 	def visualize(self, i):
 		init_r_err = torch.acos((self.T_gt[i, :3, :3].trace() - 1) / 2) * 180 / math.pi

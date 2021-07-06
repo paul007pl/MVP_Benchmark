@@ -66,21 +66,18 @@ class Model(nn.Module):
         self.head = SVDHead(args=args)
 
 
-    def forward(self, src, tgt, T_gt):
-
-        # ##### only pass ground truth while training #####
-        # if not (self.training or (R_gt is None and t_gt is None)):
-        #     raise Exception('Passing ground truth while testing')
-        # ##### only pass ground truth while training #####
+    def forward(self, src, tgt, T_gt=None, prefix="train"):
         self.pts = src
-        R_gt = T_gt[:, :3, :3]
-        t_gt = T_gt[:, :3, 3]
+        
+        if T_gt is not None:
+            R_gt = T_gt[:, :3, :3]
+            t_gt = T_gt[:, :3, 3]
 
         src = src.transpose(1,2).contiguous()
         tgt = tgt.transpose(1,2).contiguous()
 
         ##### getting ground truth correspondences #####
-        if self.training:
+        if prefix == "train":
             src_gt = torch.matmul(R_gt, src) + t_gt.unsqueeze(-1)
             dist = src_gt.unsqueeze(-1) - tgt.unsqueeze(-2)
             min_dist, min_idx = (dist ** 2).sum(1).min(-1) # [B, npoint], [B, npoint]
@@ -103,7 +100,7 @@ class Model(nn.Module):
 
         ##### hard point elimination #####
         num_point_preserved = src.size(-1) // 6
-        if self.training:
+        if prefix == "train":
             candidates = np.tile(np.arange(src.size(-1)), (src.size(0), 1))
             pos_idx = batch_choice(candidates, num_point_preserved//2, p=pos_probs)
             neg_idx = batch_choice(candidates, num_point_preserved-num_point_preserved//2, p=neg_probs)
@@ -115,7 +112,7 @@ class Model(nn.Module):
             tgt_idx = tgt_sig_score.topk(k=num_point_preserved, dim=-1)[1]
             tgt_idx = tgt_idx.cpu().numpy()
         batch_idx = np.arange(src.size(0))[:, np.newaxis]
-        if self.training:
+        if prefix == "train":
             match_labels = match_labels[batch_idx, src_idx]
         src = src[batch_idx, :, src_idx].transpose(1, 2)
         src_embedding = src_embedding[batch_idx, :, src_idx].transpose(1, 2)
@@ -165,7 +162,7 @@ class Model(nn.Module):
             ##### similarity matrix convolution to get similarities #####
 
             ##### negative entropy loss #####
-            if self.training and i == 0:
+            if prefix == "train" and i == 0:
                 src_neg_ent = torch.softmax(similarity_matrix, dim=-1)
                 src_neg_ent = (src_neg_ent * torch.log(src_neg_ent)).sum(-1)
                 tgt_neg_ent = torch.softmax(similarity_matrix, dim=-2)
@@ -174,7 +171,7 @@ class Model(nn.Module):
             ##### negative entropy loss #####
 
             ##### matching loss #####
-            if self.training:
+            if prefix == "train":
                 temp = torch.softmax(similarity_matrix, dim=-1)
                 temp = temp[:, np.arange(temp.size(-2)), np.arange(temp.size(-1))]
                 temp = - torch.log(temp)
@@ -188,7 +185,7 @@ class Model(nn.Module):
             ##### finding correspondences #####
 
             ##### soft point elimination loss #####
-            if self.training:
+            if prefix == "train":
                 weight_labels = (corr_idx == torch.arange(corr_idx.size(1)).cuda().unsqueeze(0)).float()
                 weight_loss = F.binary_cross_entropy_with_logits(weights, weight_labels)
                 loss = loss + weight_loss
@@ -209,14 +206,18 @@ class Model(nn.Module):
             t = torch.matmul(rotation_ab, t.unsqueeze(-1)).squeeze() + translation_ab
             ##### get R and t #####
 
-        mse = (rotation_geodesic_error(R, R_gt) + translation_error(t, t_gt)) #.mean()
-        r_err = rotation_error(R, R_gt)
-        t_err = translation_error(t, t_gt)
         self.T = rt_to_transformation(R, t.unsqueeze(-1))
-        rmse = rmse_loss(self.pts, self.T, T_gt)
+        if T_gt is None:
+            return self.T
+        else:
+            mse = (rotation_geodesic_error(R, R_gt) + translation_error(t, t_gt)) #.mean()
+            r_err = rotation_error(R, R_gt)
+            t_err = translation_error(t, t_gt)
+            
+            rmse = rmse_loss(self.pts, self.T, T_gt)
 
-        # return R, t, loss
-        return loss, r_err, t_err, rmse, mse
+            # return R, t, loss
+            return loss, r_err, t_err, rmse, mse
 
     def get_transform(self):
         return self.T #, self.scores12
