@@ -31,10 +31,10 @@ data
 |    ├── incomplete_pcds (41600, 2048, 3)
 |    ├── complete_pcds (1600, 2048, 3)
 |    └── labels (41600)
-└── MVP_ExtraTest_CP.h5
-     ├── incomplete_pcds (59800, 2048, 3)
-     └── labels (59800)
-
+├── MVP_ExtraTest_CP.h5
+|    ├── incomplete_pcds (59800, 2048, 3)
+|    └── labels (59800)
+└── download_data.sh
 
 ### Usage
 + To train a model: run `python train.py -c *.yaml`, e.g. `python train.py -c pcn.yaml`
