@@ -41,11 +41,11 @@ class MVP_RG(Dataset):
         self.prefix = prefix
 
         if self.prefix == "train":
-            f = h5py.File('./data/MVP_train_2048pts.h5', 'r')
+            f = h5py.File('./data/MVP_Train_RG.h5', 'r')
         elif self.prefix == "val":
-            f = h5py.File('./data/MVP_val_2048pts.h5', 'r')
+            f = h5py.File('./data/MVP_Test_RG.h5', 'r')
         elif self.prefix == "test":
-            f = h5py.File('./data/MVP_test_2048pts.h5', 'r')
+            f = h5py.File('./data/MVP_ExtraTest_RG.h5', 'r')
         
         self.max_angle = args.max_angle / 180 * np.pi
         self.max_trans = args.max_trans

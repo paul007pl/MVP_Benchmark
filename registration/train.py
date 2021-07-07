@@ -136,7 +136,7 @@ def val(net, curr_epoch_num, val_loss_meters, val_split_loss_meters, dataloader_
             match_level = match_level.int().cuda()
             rot_level = rot_level.int().cuda()
 
-            net_loss, r_err, t_err, rmse, mse = net(src, tgt, T_gt, prefix="val")
+            _, r_err, t_err, rmse, mse = net(src, tgt, T_gt, prefix="val")
 
             val_loss_meters['RotE'].update(r_err.mean().item(), curr_batch_size)
             val_loss_meters['transE'].update(t_err.mean().item(), curr_batch_size)
