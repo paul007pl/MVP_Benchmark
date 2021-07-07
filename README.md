@@ -5,7 +5,7 @@
 
 
 ### MVP Benchmark Overview
-This repository introduces the MVP Benchmark for partial point cloud completion and registration, it also includes typical methods:
+This repository introduces the MVP Benchmark for partial point cloud [completion](https://github.com/paul007pl/MVP_Benchmark/tree/main/completion) and [registration](https://github.com/paul007pl/MVP_Benchmark/tree/main/registration), it also includes typical methods:
 
 + **Completetion**
   [1] [PCN](https://github.com/wentaoyuan/pcn); [2] [ECG](https://github.com/paul007pl/ECG); [3] [VRCNet](https://github.com/paul007pl/VRCNet)

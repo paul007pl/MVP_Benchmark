@@ -14,6 +14,43 @@ Download the MVP registration dataset by the following commands:
 cd data; sh download_data.sh
 ```
 
+The data structure will be:
+```
+data
+├── MVP_Train_RG.h5
+|    ├── src (6400, 2048, 3)
+|    ├── tgt (6400, 2048, 3)
+|    ├── complete (6400, 2048, 3)
+|    ├── cat_label (6400,)
+|    ├── match_id (6400,)
+|    └── match_level (6400,)
+├── MVP_Test_RG.h5
+|    ├── rotated_src (1200, 2048, 3)
+|    ├── rotated_tgt (1200, 2048, 3)
+|    ├── pose_src (1200, 4, 4)
+|    ├── pose_tgt (1200, 4, 4)
+|    ├── rot_level (1200,)
+|    ├── transforms (1200, 4, 4)
+|    ├── src (1200, 2048, 3)
+|    ├── tgt (1200, 2048, 3)
+|    ├── complete (1200, 2048, 3)
+|    ├── cat_label (1200,)
+|    ├── match_id (1200,)
+|    └── match_level (1200,)
+├── MVP_ExtraTest_RG.h5
+|    ├── rotated_src (2000, 2048, 3)
+|    ├── rotated_tgt (2000, 2048, 3)
+|    └── cat_label (2000,)
+└── download_data.sh
+```
+
+We create the registration dataset by ensuring surfficent overlaps between the source point cloud and the target.
+Partial point cloud pairs with "match_level = 1" mostly have more correspondences than those with "match_level = 0".
+Most relative rotations are within [0, 45\textdegree], and the rest have unrestricted rotations \in [0, 360\textdegree].
+The ratio can roughly be 4 : 1.
+
+Note that the source and the target are two different incomplete point clouds scanned from the same CAD model.
+
 
 ### Usage
 + To train a model: run `python train.py -c *.yaml`, e.g. `python train.py -c pcn.yaml`
