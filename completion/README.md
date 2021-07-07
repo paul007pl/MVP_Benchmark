@@ -51,9 +51,11 @@ data
 
 **Partial point clouds** & **Complete point clouds**
 
-<center class="half">
-    <img src="images/partial_pcds.gif", width=300>
-    <img src="images/complete_pcds.gif", width=300>
+<center>
+  <figure>
+    <img src="images/partial_pcds.gif", width=450>
+    <img src="images/complete_pcds.gif", width=450>
+  </figure>
 </center>
 
 
