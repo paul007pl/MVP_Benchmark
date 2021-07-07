@@ -22,6 +22,7 @@ cd data; sh download_data.sh
 
 The data structure will be:
 
+```
 data
 ├── MVP_Train_CP.h5
 |    ├── incomplete_pcds (62400, 2048, 3)
@@ -35,6 +36,7 @@ data
 |    ├── incomplete_pcds (59800, 2048, 3)
 |    └── labels (59800)
 └── download_data.sh
+```
 
 ### Usage
 + To train a model: run `python train.py -c *.yaml`, e.g. `python train.py -c pcn.yaml`
