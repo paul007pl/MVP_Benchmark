@@ -32,7 +32,7 @@ Our code is released under MIT License.
 
 ## Acknowledgement
 We include the following algorithms:  
-[1] [PCN](https://github.com/wentaoyuan/pcn) 
-[2] [ECG](https://github.com/paul007pl/ECG)  
-[3] [VRCNet](https://github.com/paul007pl/VRCNet)
+[1] [PCN](https://github.com/wentaoyuan/pcn)    
+[2] [ECG](https://github.com/paul007pl/ECG)    
+[3] [VRCNet](https://github.com/paul007pl/VRCNet)   
 
