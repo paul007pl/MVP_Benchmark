@@ -8,6 +8,13 @@ We include the following methods for point cloud completion:
 [1] [PCN](https://github.com/wentaoyuan/pcn); [2] [ECG](https://github.com/paul007pl/ECG); [3] [VRCNet](https://github.com/paul007pl/VRCNet)
 
 
+### MVP Completion Dataset
+Download the MVP completion dataset by the following commands:
+```
+cd data; sh download_data.sh
+```
+
+
 ### Usage
 + To train a model: run `python train.py -c *.yaml`, e.g. `python train.py -c pcn.yaml`
 + To test a model: run `python test.py -c *.yaml`, e.g. `python test.py -c pcn.yaml`

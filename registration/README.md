@@ -8,6 +8,13 @@ We include the following methods for point cloud registration:
 [1] [DCP](https://github.com/WangYueFt/dcp); [2] [DeepGMR](https://github.com/wentaoyuan/deepgmr); [3] [IDAM](https://github.com/jiahaowork/idam)
 
 
+### MVP Registration Dataset
+Download the MVP registration dataset by the following commands:
+```
+cd data; sh download_data.sh
+```
+
+
 ### Usage
 + To train a model: run `python train.py -c *.yaml`, e.g. `python train.py -c pcn.yaml`
 + To test a model: run `python test.py -c *.yaml`, e.g. `python test.py -c pcn.yaml`
