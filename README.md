@@ -6,8 +6,10 @@
 
 ### MVP Benchmark Overview
 This repository introduces the MVP Benchmark for partial point cloud completion and registration, it also includes typical methods:
+
 **Completetion**
 [1] [PCN](https://github.com/wentaoyuan/pcn); [2] [ECG](https://github.com/paul007pl/ECG); [3] [VRCNet](https://github.com/paul007pl/VRCNet)
+
 **Registration**
 [1] [DCP](https://github.com/WangYueFt/dcp); [2] [DeepGMR](https://github.com/wentaoyuan/deepgmr); [3] [IDAM](https://github.com/jiahaowork/idam)
 
