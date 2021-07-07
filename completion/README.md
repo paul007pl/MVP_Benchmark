@@ -14,6 +14,12 @@ Download the MVP completion dataset by the following commands:
 cd data; sh download_data.sh
 ```
 
+| id | 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 | 13 | 14 | 15 |
+|:----:|:----:|:----:|:----:|:----:|:----:|:----:|:----:|:----:|:----:|:----:|:----:|:----:|:----:|:----:|:----:|:----:|
+| category | airplane | cabinet | car | chair | lamp | sofa | table | watercraft | bed | bench | bookshelf | bus | guitar | motorbike | pistol | skateboard | 
+| \#train  | 5200 | 5200 | 5200 | 5200 | 5200 | 5200 | 5200 | 5200 | 2600 | 2600 | 2600 | 2600 | 2600 | 2600 | 2600 | 2600 |
+| \#test  | 3900 | 3900 | 3900 | 3900 | 3900 | 3900 | 3900 | 3900 | 1300 | 1300 | 1300 | 1300 | 1300 | 1300 | 1300 | 1300 |
+
 
 ### Usage
 + To train a model: run `python train.py -c *.yaml`, e.g. `python train.py -c pcn.yaml`
