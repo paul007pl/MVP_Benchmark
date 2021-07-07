@@ -24,7 +24,7 @@ sh setup.sh
 ### MVP Dataset
 Download corresponding dataset:
   + [Completion](https://www.dropbox.com/sh/fh3hd3d1qk4hgbm/AADCSMaDxrPRq9JMTECHqF-Qa?dl=0)
-  + [Registration](https://www.dropbox.com/sh/cfionzubdy3zhay/AABzK5WqF_Yi_CV-MJoulsN4a?dl
+  + [Registration](https://www.dropbox.com/sh/cfionzubdy3zhay/AABzK5WqF_Yi_CV-MJoulsN4a?dl)
 
 
 ### Usage
