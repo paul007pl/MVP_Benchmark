@@ -22,6 +22,7 @@ Install [Anaconda](https://docs.anaconda.com/anaconda/install/index.html), and t
 ```
 sh setup.sh
 ```
+You may not be able to install all requirements by simply running this command, but you can manually install each required library according to this script "setup.sh".
 
 ### MVP Dataset
 Download corresponding dataset:
