@@ -44,14 +44,14 @@ data
 └── download_data.sh
 ```
 
-Note that the source and the target are two different incomplete point clouds scanned from the same CAD model.
-```
 We create the registration dataset by ensuring surfficent overlaps between the source point cloud and the target.
 Partial point cloud pairs with "match_level = 1" mostly have more correspondences than those with "match_level = 0".
 
-Most relative rotations are within $$[0, 45^{degree}]$$, and the rest have unrestricted rotations $$\in [0, 360^{degree}]$$.
+Most relative rotations are within [0, 45\textdegree], and the rest have unrestricted rotations \in [0, 360\textdegree].
 The ratio can roughly be 4 : 1.
-```
+
+Note that the source and the target are two different incomplete point clouds scanned from the same CAD model.
+
 
 ### Usage
 + To train a model: run `python train.py -c *.yaml`, e.g. `python train.py -c pcn.yaml`
