@@ -20,6 +20,21 @@ cd data; sh download_data.sh
 | \#train  | 5200 | 5200 | 5200 | 5200 | 5200 | 5200 | 5200 | 5200 | 2600 | 2600 | 2600 | 2600 | 2600 | 2600 | 2600 | 2600 |
 | \#test  | 3900 | 3900 | 3900 | 3900 | 3900 | 3900 | 3900 | 3900 | 1300 | 1300 | 1300 | 1300 | 1300 | 1300 | 1300 | 1300 |
 
+The data structure will be:
+
+data
+├── MVP_Train_CP.h5
+|    ├── incomplete_pcds (62400, 2048, 3)
+|    ├── complete_pcds (2400, 2048, 3)
+|    └── labels (62400)
+├── MVP_Test_CP.h5
+|    ├── incomplete_pcds (41600, 2048, 3)
+|    ├── complete_pcds (1600, 2048, 3)
+|    └── labels (41600)
+└── MVP_ExtraTest_CP.h5
+     ├── incomplete_pcds (59800, 2048, 3)
+     └── labels (59800)
+
 
 ### Usage
 + To train a model: run `python train.py -c *.yaml`, e.g. `python train.py -c pcn.yaml`
