@@ -67,7 +67,7 @@ We include the following PyTorch 3rd-party libraries:
 We include the following algorithms:  
 [1] [PCN](https://github.com/wentaoyuan/pcn)  
 [2] [ECG](https://github.com/paul007pl/ECG)  
-[3] [VRCNet](https://github.com/paul007pl/VRCNet)
-[4] [DCP](https://github.com/WangYueFt/dcp)
-[5] [DeepGMR](https://github.com/wentaoyuan/deepgmr)
-[6] [IDAM](https://github.com/jiahaowork/idam)
+[3] [VRCNet](https://github.com/paul007pl/VRCNet)  
+[4] [DCP](https://github.com/WangYueFt/dcp)  
+[5] [DeepGMR](https://github.com/wentaoyuan/deepgmr)  
+[6] [IDAM](https://github.com/jiahaowork/idam)  
