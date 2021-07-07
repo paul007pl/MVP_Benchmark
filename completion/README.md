@@ -49,12 +49,12 @@ data
 <img src="images/complete_pcds.gif">
 </p> -->
 
-Partial point clouds & Complete point clouds
+**Partial point clouds** & **Complete point clouds**
 
-<figure class="half">
-    <img src="images/partial_pcds.gif">
-    <img src="images/complete_pcds.gif">
-</figure>
+<center class="half">
+    <img src="images/partial_pcds.gif", width=300>
+    <img src="images/complete_pcds.gif", width=300>
+</center>
 
 
 ### Usage
