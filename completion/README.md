@@ -3,6 +3,7 @@
 <img src="images/mvp.png">
 </p>
 
+
 We include the following methods for point cloud completion:
 
 [1] [PCN](https://github.com/wentaoyuan/pcn); [2] [ECG](https://github.com/paul007pl/ECG); [3] [VRCNet](https://github.com/paul007pl/VRCNet)
@@ -36,6 +37,15 @@ data
 | category | airplane | cabinet | car | chair | lamp | sofa | table | watercraft | bed | bench | bookshelf | bus | guitar | motorbike | pistol | skateboard | 
 | \#train  | 5200 | 5200 | 5200 | 5200 | 5200 | 5200 | 5200 | 5200 | 2600 | 2600 | 2600 | 2600 | 2600 | 2600 | 2600 | 2600 |
 | \#test  | 3900 | 3900 | 3900 | 3900 | 3900 | 3900 | 3900 | 3900 | 1300 | 1300 | 1300 | 1300 | 1300 | 1300 | 1300 | 1300 |
+
+
+<p align="center"> 
+<img src="images/partial_pcds.gif">
+</p>
+
+<p align="center"> 
+<img src="images/complete_pcds.gif">
+</p>
 
 
 ### Usage
