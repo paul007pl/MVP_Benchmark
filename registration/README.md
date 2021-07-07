@@ -31,6 +31,7 @@ Our code is released under MIT License.
 
 ## Acknowledgement
 We include the following algorithms:  
-[1] [DCP](https://github.com/WangYueFt/dcp)
-[2] [DeepGMR](https://github.com/wentaoyuan/deepgmr)
-[3] [IDAM](https://github.com/jiahaowork/idam)
+[1] [DCP](https://github.com/WangYueFt/dcp) 
+[2] [DeepGMR](https://github.com/wentaoyuan/deepgmr) 
+[3] [IDAM](https://github.com/jiahaowork/idam) 
+
