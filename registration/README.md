@@ -1,4 +1,4 @@
-# Partial-to-Partial Point Cloud Registration
+# *MVP Benchmark:* Partial-to-Partial Point Cloud Registration
 <p align="center"> 
 <img src="images/registration.png">
 </p>

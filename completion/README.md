@@ -1,4 +1,4 @@
-# Point Cloud Completioin
+# *MVP Benchmark:* Point Cloud Completioin
 <p align="center"> 
 <img src="images/mvp.png">
 </p>
