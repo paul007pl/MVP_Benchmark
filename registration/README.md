@@ -34,7 +34,7 @@ If you find our code useful, please cite our paper:
 ```
 
 ## License
-Our code is released under MIT License.
+Our code is released under Apache-2.0 License.
 
 
 ## Acknowledgement
