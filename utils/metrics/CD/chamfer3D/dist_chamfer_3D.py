@@ -72,4 +72,3 @@ class chamfer_3DDist(nn.Module):
         input1 = input1.contiguous()
         input2 = input2.contiguous()
         return chamfer_3DFunction.apply(input1, input2)
-
