@@ -4,7 +4,14 @@
 </p>
 
 
-### MVP Benchmark Overview
+## [NEWS]
+- The MVP challenges will be hosted in the **ICCV2021 Workshop: *Sensing, Understanding and Synthesizing Humans*[https://sense-human.github.io/]**.
+(More information will be released soon.)
+
+
+## MVP Benchmark
+
+### Overview
 This repository introduces the MVP Benchmark for partial point cloud **[COMPLETION](https://github.com/paul007pl/MVP_Benchmark/tree/main/completion)** and **[REGISTRATION](https://github.com/paul007pl/MVP_Benchmark/tree/main/registration)**, and it also includes following recent methods:
 
 + **Completetion:**
