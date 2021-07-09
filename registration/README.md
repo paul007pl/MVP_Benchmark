@@ -13,7 +13,7 @@ We include the following methods for point cloud registration:
 ```
 cd data; sh download_data.sh
 ``` -->
-Download the MVP registration dataset ([Google Drive](https://drive.google.com/drive/folders/1RlUW0vmmyqxkBTM_ITVguAjxzIS1MFz4) or [百度网盘](https://pan.baidu.com/s/18pli79KSGGsWQ8FPiSW9qg)(code:p364)) to the folder "data".
+Download the MVP registration dataset [Google Drive](https://drive.google.com/drive/folders/1RlUW0vmmyqxkBTM_ITVguAjxzIS1MFz4) or [百度网盘](https://pan.baidu.com/s/18pli79KSGGsWQ8FPiSW9qg)&nbsp;&nbsp;(code: p364) to the folder "data".
 
 The data structure will be:
 ```
