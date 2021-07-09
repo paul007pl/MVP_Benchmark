@@ -6,7 +6,7 @@
 
 We include the following methods for point cloud completion:
 
-[1] [PCN](https://github.com/wentaoyuan/pcn); [2] [ECG](https://github.com/paul007pl/ECG); [3] [VRCNet](https://github.com/paul007pl/VRCNet)
+[1] [PCN](https://github.com/wentaoyuan/pcn);&nbsp;&nbsp; [2] [ECG](https://github.com/paul007pl/ECG);&nbsp;&nbsp; [3] [VRCNet](https://github.com/paul007pl/VRCNet)
 
 
 ### MVP Completion Dataset
