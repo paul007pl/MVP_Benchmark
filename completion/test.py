@@ -40,7 +40,7 @@ def test():
         results_list = []
         for i, data in enumerate(dataloader_test):
             
-            label, inputs_cpu = data
+            inputs_cpu = data
 
             inputs = inputs_cpu.float().cuda()
             inputs = inputs.transpose(2, 1).contiguous()
