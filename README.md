@@ -12,6 +12,8 @@
 + ICCV2021 Workshop Webpage
 + Codalab Webpage
 
+<br>
+
 
 ## [MVP Benchmark]
 
@@ -27,13 +29,13 @@ This repository introduces the MVP Benchmark for partial point cloud **[COMPLETI
 This repository is implemented in Python 3.7, PyTorch 1.5.0 and CUDA 10.1. 
 
 
-
 ### Installation
 Install [Anaconda](https://docs.anaconda.com/anaconda/install/index.html), and then use the following command:
 ```
 sh setup.sh
 ```
 You may not be able to install all requirements by simply running this command, but you can manually install each required library according to this script "setup.sh".
+
 
 ### MVP Dataset
 Download corresponding dataset:
@@ -48,6 +50,8 @@ For both completion and registration:
   + Config for each algorithm can be found in `cfgs/`.
   + `run_train.sh` and `run_test.sh` are provided for SLURM users. 
 
+<br>
+
 
 ## [Citation]
 If you find our code useful, please cite our paper:
@@ -60,9 +64,13 @@ If you find our code useful, please cite our paper:
 }
 ```
 
+<br>
+
 
 ## [License]
 Our code is released under Apache-2.0 License.
+
+<br>
 
 
 ## [Acknowledgement]
