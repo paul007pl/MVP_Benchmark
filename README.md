@@ -5,6 +5,7 @@
 
 
 ## [NEWS]
+- **2021-07 [NEW:partying_face:]** Code and Data release!
 - The MVP challenges will be hosted in the **ICCV2021 Workshop**: ***[Sensing, Understanding and Synthesizing Humans](https://sense-human.github.io/)***.
 (More information will be released soon.)
 
