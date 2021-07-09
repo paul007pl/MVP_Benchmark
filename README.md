@@ -8,8 +8,12 @@
 - The MVP challenges will be hosted in the **ICCV2021 Workshop**: ***[Sensing, Understanding and Synthesizing Humans](https://sense-human.github.io/)***.
 (More information will be released soon.)
 
+### ToDo List
++ ICCV2021 Workshop Webpage
++ Codalab Webpage
 
-## MVP Benchmark
+
+## [MVP Benchmark]
 
 ### Overview
 This repository introduces the MVP Benchmark for partial point cloud **[COMPLETION](https://github.com/paul007pl/MVP_Benchmark/tree/main/completion)** and **[REGISTRATION](https://github.com/paul007pl/MVP_Benchmark/tree/main/registration)**, and it also includes following recent methods:
@@ -45,12 +49,7 @@ For both completion and registration:
   + `run_train.sh` and `run_test.sh` are provided for SLURM users. 
 
 
-### ToDo List (coming soon)
-+ ICCV2021 Workshop Webpage
-+ Online Benchmark Evaluation Webpage
-
-
-## Citation
+## [Citation]
 If you find our code useful, please cite our paper:
 ```bibtex
 @article{pan2021variational,
@@ -62,11 +61,11 @@ If you find our code useful, please cite our paper:
 ```
 
 
-## License
+## [License]
 Our code is released under Apache-2.0 License.
 
 
-## Acknowledgement
+## [Acknowledgement]
 We include the following PyTorch 3rd-party libraries:  
 [1] [CD](https://github.com/ThibaultGROUEIX/ChamferDistancePytorch)  
 [2] [EMD](https://github.com/Colin97/MSN-Point-Cloud-Completion)  
