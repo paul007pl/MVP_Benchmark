@@ -50,13 +50,17 @@ data
 </p> -->
 
 
-**Partial point clouds** & **Complete point clouds**
+<!-- **Partial point clouds** & **Complete point clouds**
 
 <center class="half">
   <figure>
     <img src="images/partial_pcds.gif", width=400><img src="images/complete_pcds.gif", width=400>
   </figure>
-</center>
+</center> -->
+
+Partial point clouds | Complete point clouds
+:-------------------------:|:---------------- ---------:
+![](./images/partial_pcds.gif) | ![](./images/complete_pcds.gif)
 
 
 ### Usage
