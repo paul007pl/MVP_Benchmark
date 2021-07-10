@@ -54,7 +54,7 @@ data
 
 <center class="half">
   <figure>
-    <img src="images/partial_pcds.gif", width=450><img src="images/complete_pcds.gif", width=450>
+    <img src="images/partial_pcds.gif", width=400><img src="images/complete_pcds.gif", width=400>
   </figure>
 </center>
 
