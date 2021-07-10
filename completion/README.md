@@ -39,16 +39,6 @@ data
 | \#test  | 3900 | 3900 | 3900 | 3900 | 3900 | 3900 | 3900 | 3900 | 1300 | 1300 | 1300 | 1300 | 1300 | 1300 | 1300 | 1300 |
 
 
-+ Different partial point clouds for the same CAD Model:
-<p align="center"> 
-<img src="images/partial_pcds.gif", style="zoom: 75%;">
-</p>
-
-+ High-quality complete point clouds:
-<p align="center"> 
-<img src="images/complete_pcds.gif", style="zoom: 75%;">
-</p>
-
 
 <!-- **Partial point clouds** & **Complete point clouds**
 

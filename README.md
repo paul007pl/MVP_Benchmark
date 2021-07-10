@@ -52,6 +52,17 @@ For both completion and registration:
   + Config for each algorithm can be found in `cfgs/`.
   + `run_train.sh` and `run_test.sh` are provided for SLURM users. 
 
+
++ Different partial point clouds for the same CAD Model:
+<p align="center"> 
+<img src="images/partial_pcds.gif", style="zoom: 75%;">
+</p>
+
++ High-quality complete point clouds:
+<p align="center"> 
+<img src="images/complete_pcds.gif", style="zoom: 75%;">
+</p>
+
 <br>
 
 
