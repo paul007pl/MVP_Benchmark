@@ -5,7 +5,7 @@
 
 
 ## [NEWS]
-- **2021-07-10 [NEW:partying_face:]** [Data base website](https://mvp-dataset.github.io/index.html) and [Codalab website](https://competitions.codalab.org/competitions/33430?secret_key=116a82d2-ebfd-4b73-98d7-cbace301ddc2) on line!
+- **2021-07-10 [NEW:partying_face:]** [Data base website](https://mvp-dataset.github.io/index.html) and [Codalab website](https://competitions.codalab.org/competitions/33430?secret_key=116a82d2-ebfd-4b73-98d7-cbace301ddc2) are online!
 - **2021-07-09 [NEW:partying_face:]** Code and Data release!
 - **2021** The MVP challenges will be hosted in the **ICCV2021 Workshop**: ***[Sensing, Understanding and Synthesizing Humans](https://sense-human.github.io/)***.
 (More information will be released soon.)
