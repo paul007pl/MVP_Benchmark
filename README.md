@@ -42,8 +42,8 @@ Download corresponding dataset:
 ### Usage
 For both completion and registration:
   + `cd completion` or `cd registration`
-  + To train a model: run `python train.py -c *.yaml`, e.g. `python train.py -c ./cfgs/pcn.yaml`
-  + To test a model: run `python test.py -c *.yaml`, e.g. `python test.py -c ./cfgs/pcn.yaml`
+  + To train a model: run `python train.py -c ./cfgs/*.yaml`, e.g. `python train.py -c ./cfgs/pcn.yaml`
+  + To test a model: run `python test.py -c ./cfgs/*.yaml`, e.g. `python test.py -c ./cfgs/pcn.yaml`
   + Config for each algorithm can be found in `cfgs/`.
   + `run_train.sh` and `run_test.sh` are provided for SLURM users. 
 

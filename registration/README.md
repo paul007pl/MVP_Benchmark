@@ -54,8 +54,8 @@ Note that the source and the target are two different incomplete point clouds sc
 
 
 ### Usage
-+ To train a model: run `python train.py -c *.yaml`, e.g. `python train.py -c pcn.yaml`
-+ To test a model: run `python test.py -c *.yaml`, e.g. `python test.py -c pcn.yaml`
++ To train a model: run `python train.py -c ./cfgs/*.yaml`, e.g. `python train.py -c ./cfgs/pcn.yaml`
++ To test a model: run `python test.py -c ./cfgs/*.yaml`, e.g. `python test.py -c ./cfgs/pcn.yaml`
 + Config for each algorithm can be found in `cfgs/`.
 + `run_train.sh` and `run_test.sh` are provided for SLURM users. 
 
