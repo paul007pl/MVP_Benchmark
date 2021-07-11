@@ -27,4 +27,4 @@ See `emd_module.py/test_emd()` for examples.
 
 ### Aknowledgment 
 
-Modify from [Liu Minghua](https://github.com/Colin97/MSN-Point-Cloud-Completion/tree/master/emd)
+Modify from [Minghua LIU](https://github.com/Colin97/MSN-Point-Cloud-Completion/tree/master/emd)
