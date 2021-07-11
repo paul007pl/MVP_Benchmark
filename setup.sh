@@ -1,8 +1,8 @@
 #!/bin/bash
 
-conda create -n mvp python=3.7
+conda create -n mvp python=3.7 -y
 conda activate mvp
-conda install pytorch==1.5.0 torchvision==0.6.0 cudatoolkit=10.1 -c pytorch
+conda install pytorch==1.5.0 torchvision==0.6.0 cudatoolkit=10.1 -c pytorch -y
 
 # setup completion
 cd completion
@@ -26,8 +26,9 @@ cd ../utils/mm3d_pn2/
 sh setup.sh
 
 # SLURM users
-sh run_build.sh
+# sh run_build.sh
 # or 
+pip install -v -e . 
 # python setup.py develop
 
 cd ../../

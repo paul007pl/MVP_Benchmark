@@ -28,15 +28,15 @@ This repository introduces the MVP Benchmark for partial point cloud **[COMPLETI
 + **Registration:**
     &nbsp;&nbsp;[1] [DCP](https://github.com/WangYueFt/dcp); &nbsp;&nbsp;[2] [DeepGMR](https://github.com/wentaoyuan/deepgmr); &nbsp;&nbsp;[3] [IDAM](https://github.com/jiahaowork/idam)
 
-This repository is implemented in Python 3.7, PyTorch 1.5.0 and CUDA 10.1. 
+This repository is implemented in Python 3.7, PyTorch 1.5.0, CUDA 10.1 and gcc > 5. 
 
 
 ### Installation
 Install [Anaconda](https://docs.anaconda.com/anaconda/install/index.html), and then use the following command:
 ```
-sh setup.sh
+source setup.sh
 ```
-You may not be able to install all requirements by simply running this command, but you can manually install each required library according to this script "setup.sh".
+If your connection to conda and pip is unstable, it is recommended to manually follow the setup steps in setup.
 
 
 ### MVP Dataset
@@ -47,8 +47,9 @@ Download corresponding dataset:
 
 ### Usage
 For both completion and registration:
-  + To train a model: run `python train.py -c *.yaml`, e.g. `python train.py -c pcn.yaml`
-  + To test a model: run `python test.py -c *.yaml`, e.g. `python test.py -c pcn.yaml`
+  + `cd completion` or `cd registration`
+  + To train a model: run `python train.py -c *.yaml`, e.g. `python train.py -c ./cfgs/pcn.yaml`
+  + To test a model: run `python test.py -c *.yaml`, e.g. `python test.py -c ./cfgs/pcn.yaml`
   + Config for each algorithm can be found in `cfgs/`.
   + `run_train.sh` and `run_test.sh` are provided for SLURM users. 
 
