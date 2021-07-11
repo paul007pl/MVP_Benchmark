@@ -36,7 +36,7 @@ Install [Anaconda](https://docs.anaconda.com/anaconda/install/index.html), and t
 ```
 source setup.sh
 ```
-If your connection to conda and pip is unstable, it is recommended to manually follow the setup steps in setup.
+If your connection to conda and pip is unstable, it is recommended to manually follow the setup steps in `setup.sh`.
 
 
 ### MVP Dataset
