@@ -5,16 +5,9 @@
 
 
 ## [NEWS]
-- **2021-07-10 [NEW:partying_face:]** [Database website](https://mvp-dataset.github.io/index.html) and [Codalab website](https://competitions.codalab.org/competitions/33430?secret_key=116a82d2-ebfd-4b73-98d7-cbace301ddc2) are online!
-- **2021-07-09 [NEW:partying_face:]** Code and Data release!
-- **2021** The MVP challenges will be hosted in the **ICCV2021 Workshop**: ***[Sensing, Understanding and Synthesizing Humans](https://sense-human.github.io/)***.
-(More information will be released soon.)
-
-### ToDo List
-+ ICCV2021 Workshop Webpage
-<!-- + Codalab Webpage -->
-
-<br>
+- **2021-07-10 [NEW:tada:]** [Database website](https://mvp-dataset.github.io) and [Challenge website](https://competitions.codalab.org/competitions/33430) are online!
+- **2021-07-09 [NEW:tada:]** Code and data released!
+- **2021-07-01** The MVP challenges will be hosted in the **ICCV2021 Workshop**: ***[Sensing, Understanding and Synthesizing Humans](https://sense-human.github.io/)***.
 
 
 ## [MVP Benchmark]
@@ -34,7 +27,8 @@ This repository is implemented in Python 3.7, PyTorch 1.5.0, CUDA 10.1 and gcc >
 ### Installation
 Install [Anaconda](https://docs.anaconda.com/anaconda/install/index.html), and then use the following command:
 ```
-source setup.sh
+git clone --depth=1 https://github.com/paul007pl/MVP_Benchmark.git
+cd MVP_Benchmark; source setup.sh;
 ```
 If your connection to conda and pip is unstable, it is recommended to manually follow the setup steps in `setup.sh`.
 
@@ -48,8 +42,8 @@ Download corresponding dataset:
 ### Usage
 For both completion and registration:
   + `cd completion` or `cd registration`
-  + To train a model: run `python train.py -c *.yaml`, e.g. `python train.py -c ./cfgs/pcn.yaml`
-  + To test a model: run `python test.py -c *.yaml`, e.g. `python test.py -c ./cfgs/pcn.yaml`
+  + To train a model: run `python train.py -c ./cfgs/*.yaml`, e.g. `python train.py -c ./cfgs/pcn.yaml`
+  + To test a model: run `python test.py -c ./cfgs/*.yaml`, e.g. `python test.py -c ./cfgs/pcn.yaml`
   + Config for each algorithm can be found in `cfgs/`.
   + `run_train.sh` and `run_test.sh` are provided for SLURM users. 
 
