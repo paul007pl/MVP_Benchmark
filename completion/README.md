@@ -6,14 +6,15 @@
 
 We include the following methods for point cloud completion:
 
-[1] [PCN](https://github.com/wentaoyuan/pcn); [2] [ECG](https://github.com/paul007pl/ECG); [3] [VRCNet](https://github.com/paul007pl/VRCNet)
+[1] [PCN](https://github.com/wentaoyuan/pcn);&nbsp;&nbsp; [2] [ECG](https://github.com/paul007pl/ECG);&nbsp;&nbsp; [3] [VRCNet](https://github.com/paul007pl/VRCNet)
 
 
 ### MVP Completion Dataset
-Download the MVP completion dataset by the following commands:
+<!-- Download the MVP completion dataset by the following commands:
 ```
 cd data; sh download_data.sh
-```
+``` -->
+Download the MVP completion dataset [Google Drive](https://drive.google.com/drive/folders/1XxZ4M_dOB3_OG1J6PnpNvrGTie5X9Vk_) or [百度网盘](https://pan.baidu.com/s/18pli79KSGGsWQ8FPiSW9qg)&nbsp;&nbsp;(code: p364) to the folder "data".
 
 The data structure will be:
 ```
@@ -26,10 +27,9 @@ data
 |    ├── incomplete_pcds (41600, 2048, 3)
 |    ├── complete_pcds (1600, 2048, 3)
 |    └── labels (41600,)
-├── MVP_ExtraTest_CP.h5
-|    ├── incomplete_pcds (59800, 2048, 3)
-|    └── labels (59800,)
-└── download_data.sh
+└── MVP_ExtraTest_Shuffled_CP.h5
+     ├── incomplete_pcds (59800, 2048, 3)
+     └── labels (59800,)
 ```
 
 | id | 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 | 13 | 14 | 15 |
@@ -39,25 +39,18 @@ data
 | \#test  | 3900 | 3900 | 3900 | 3900 | 3900 | 3900 | 3900 | 3900 | 1300 | 1300 | 1300 | 1300 | 1300 | 1300 | 1300 | 1300 |
 
 
-+ Different partial point clouds for the same CAD Model:
-<p align="center"> 
-<img src="images/partial_pcds.gif", style="zoom: 75%;">
-</p>
 
-+ High-quality complete point clouds:
-<p align="center"> 
-<img src="images/complete_pcds.gif", style="zoom: 75%;">
-</p>
+<!-- **Partial point clouds** & **Complete point clouds**
 
-<!-- 
-**Partial point clouds** & **Complete point clouds**
-
-<center>
+<center class="half">
   <figure>
-    <img src="images/partial_pcds.gif", width=450>
-    <img src="images/complete_pcds.gif", width=450>
+    <img src="images/partial_pcds.gif", width=400><img src="images/complete_pcds.gif", width=400>
   </figure>
 </center> -->
+
+<!-- Partial point clouds | Complete point clouds
+:-------------------------:|:---------------- ---------:
+![](./images/partial_pcds.gif) | ![](./images/complete_pcds.gif) -->
 
 
 ### Usage

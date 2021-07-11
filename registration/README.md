@@ -5,14 +5,15 @@
 
 We include the following methods for point cloud registration:
 
-[1] [DCP](https://github.com/WangYueFt/dcp); [2] [DeepGMR](https://github.com/wentaoyuan/deepgmr); [3] [IDAM](https://github.com/jiahaowork/idam)
+[1] [DCP](https://github.com/WangYueFt/dcp);&nbsp;&nbsp; [2] [DeepGMR](https://github.com/wentaoyuan/deepgmr);&nbsp;&nbsp; [3] [IDAM](https://github.com/jiahaowork/idam)
 
 
 ### MVP Registration Dataset
-Download the MVP registration dataset by the following commands:
+<!-- Download the MVP registration dataset by the following commands:
 ```
 cd data; sh download_data.sh
-```
+``` -->
+Download the MVP registration dataset [Google Drive](https://drive.google.com/drive/folders/1RlUW0vmmyqxkBTM_ITVguAjxzIS1MFz4) or [百度网盘](https://pan.baidu.com/s/18pli79KSGGsWQ8FPiSW9qg)&nbsp;&nbsp;(code: p364) to the folder "data".
 
 The data structure will be:
 ```
@@ -37,11 +38,10 @@ data
 |    ├── cat_label (1200,)
 |    ├── match_id (1200,)
 |    └── match_level (1200,)
-├── MVP_ExtraTest_RG.h5
-|    ├── rotated_src (2000, 2048, 3)
-|    ├── rotated_tgt (2000, 2048, 3)
-|    └── cat_label (2000,)
-└── download_data.sh
+└── MVP_ExtraTest_RG.h5
+     ├── rotated_src (2000, 2048, 3)
+     ├── rotated_tgt (2000, 2048, 3)
+     └── cat_label (2000,)
 ```
 
 We create the registration dataset by ensuring surfficent overlaps between the source point cloud and the target.
