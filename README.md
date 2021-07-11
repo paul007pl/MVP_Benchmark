@@ -27,7 +27,7 @@ This repository is implemented in Python 3.7, PyTorch 1.5.0, CUDA 10.1 and gcc >
 ### Installation
 Install [Anaconda](https://docs.anaconda.com/anaconda/install/index.html), and then use the following command:
 ```
-git clone https://github.com/paul007pl/MVP_Benchmark.git --depth=1;
+git clone --depth=1 https://github.com/paul007pl/MVP_Benchmark.git;
 cd MVP_Benchmark; source setup.sh;
 ```
 If your connection to conda and pip is unstable, it is recommended to manually follow the setup steps in `setup.sh`.
