@@ -4,7 +4,95 @@ import torch.nn as nn
 import torch.nn.functional as F
 from visu_utils import visualize
 from train_utils import *
-from model_utils import get_rri_cluster, Conv1DBNReLU, FCBNReLU
+# from model_utils import get_rri_cluster, Conv1DBNReLU, FCBNReLU
+
+
+def knn(x, k):
+    inner = -2 * torch.matmul(x.transpose(2, 1).contiguous(), x)
+    xx = torch.sum(x ** 2, dim=1, keepdim=True)
+    pairwise_distance = -xx - inner - xx.transpose(2, 1).contiguous()
+    idx = pairwise_distance.topk(k=k, dim=-1)[1].detach()  # (batch_size, num_points, k)
+    return idx
+
+
+def get_edge_features(x, idx):
+	batch_size, num_points, k = idx.size()
+	device = torch.device('cuda')
+
+	idx_base = torch.arange(0, batch_size, device=device).view(-1, 1, 1) * num_points
+	idx = idx + idx_base
+	idx = idx.view(-1)
+
+	_, num_dims, _ = x.size()
+	x = x.transpose(2, 1).contiguous() 
+    # (batch_size, num_points, num_dims)  -> (batch_size*num_points, num_dims) #   batch_size * num_points * k + range(0, batch_size*num_points)
+	feature = x.view(batch_size * num_points, -1)[idx, :]
+	feature = feature.view(batch_size, num_points, k, num_dims)
+	return feature
+
+
+class FCBNReLU(nn.Module):
+	def __init__(self, in_planes, out_planes):
+		super(FCBNReLU, self).__init__()
+		self.linear = nn.Linear(in_planes, out_planes, bias=False)
+		self.bn = nn.BatchNorm1d(out_planes)
+		self.relu = nn.ReLU(inplace=True)
+	def forward(self, x):
+		return self.relu(self.bn(self.linear(x)))
+
+
+class Conv1DBNReLU(nn.Module):
+    def __init__(self, in_channel, out_channel, ksize=1):
+        super(Conv1DBNReLU, self).__init__()
+        self.conv = nn.Conv1d(in_channel, out_channel, ksize, bias=False)
+        self.bn = nn.BatchNorm1d(out_channel)
+        self.relu = nn.ReLU()
+    def forward(self, x):
+        return self.relu(self.bn(self.conv(x)))
+
+
+def get_rri_cluster(cluster_pts, k):
+	'''
+	Input:
+		cluster_pts: B 3 S M; k: int;
+	Output:
+		cluster_feats: B 4k S M;
+	'''
+	batch_size = cluster_pts.size()[0]
+	num_samples = cluster_pts.size()[2]
+	num_clusters = cluster_pts.size()[3]
+	
+	cluster_pts_ = cluster_pts.permute(0, 3, 1, 2).contiguous().view(batch_size*num_clusters, 3, num_samples) # BM 3 S
+	idx = knn(cluster_pts_, k+1)[:,:,1:] # BM S k
+	cluster_npts_ = (get_edge_features(cluster_pts_, idx)).permute(0, 3, 2, 1).contiguous() # BM 3 k S
+	
+	p = cluster_pts_.transpose(1, 2).contiguous().unsqueeze(2).repeat(1,1,k,1) # BM S k 3
+	q = cluster_npts_.transpose(1, 3).contiguous() # BM S k 3
+
+	rp = torch.norm(p, None, dim=-1, keepdim=True) # BM S k 1
+	rq = torch.norm(q, None, dim=-1, keepdim=True) # BM S k 1
+	pn = p / rp
+	qn = q / rq
+	dot = torch.sum(pn * qn, dim=-1, keepdim=True) # BM S k 1
+
+	theta = torch.acos(torch.clamp(dot, -1, 1)) # BM S k 1
+
+	T_q = (q - dot * p)
+	T_q = T_q.cpu().numpy()
+	pn = pn.cpu().numpy()
+	sin_psi = np.sum(np.cross(T_q[:, :, None], T_q[:, :, :, None]) * pn[:, :, None], -1)
+	cos_psi = np.sum(T_q[:, :, None] * T_q[:, :, :, None], -1)
+	
+	psi = np.arctan2(sin_psi, cos_psi) % (2*np.pi)
+
+	# psi = np.where(psi < 0, psi+2*np.pi, psi)
+
+	idx = np.argpartition(psi, 1)[:, :, :, 1:2]
+	# phi: BM x S x k x 1, projection angles
+	phi = torch.from_numpy(np.take_along_axis(psi, idx, axis=-1)).to(theta.device)
+
+	feat = torch.cat([rp, rq, theta, phi], axis=-1).view(batch_size, num_clusters, num_samples, 4*k).transpose(1,3).contiguous() # B 4k S M
+	return feat
 
 
 def gmm_params(gamma, pts):

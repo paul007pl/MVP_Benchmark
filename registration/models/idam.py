@@ -13,7 +13,103 @@ from torch.autograd import Variable
 import open3d as o3d
 # from open3d.open3d.geometry import estimate_normals
 from train_utils import rotation_error, translation_error, rmse_loss, rt_to_transformation, rotation_geodesic_error
-from model_utils import knn, batch_choice, FPFH, Conv1DBlock, Conv2DBlock, SVDHead
+# from model_utils import knn, batch_choice, FPFH, Conv1DBlock, Conv2DBlock, SVDHead
+
+
+def batch_choice(data, k, p=None, replace=False):
+    # data is [B, N]
+    out = []
+    for i in range(len(data)):
+        out.append(np.random.choice(data[i], size=k, p=p[i], replace=replace))
+    out = np.stack(out, 0)
+    return out
+
+
+def knn(x, k):
+    inner = -2 * torch.matmul(x.transpose(2, 1).contiguous(), x)
+    xx = torch.sum(x ** 2, dim=1, keepdim=True)
+    pairwise_distance = -xx - inner - xx.transpose(2, 1).contiguous()
+
+    idx = pairwise_distance.topk(k=k, dim=-1)[1]  # (batch_size, num_points, k)
+    return idx
+
+
+class FPFH(nn.Module):
+    def __init__(self, radius_normal=0.1, radius_feature=0.2):
+        super(FPFH, self).__init__()
+        self.radius_normal = radius_normal
+        self.radius_feature = radius_feature
+
+    def forward(self, xyz):
+        xyz = xyz.transpose(1, 2).cpu().numpy()
+        res = np.zeros((xyz.shape[0], 33, xyz.shape[1]))
+
+        for i in range(len(xyz)):
+            pcd = o3d.geometry.PointCloud()
+            pcd.points = o3d.utility.Vector3dVector(xyz[i])
+            # estimate_normals(pcd, o3d.geometry.KDTreeSearchParamHybrid(radius=self.radius_normal, max_nn=30))
+            pcd.estimate_normals(search_param=o3d.geometry.KDTreeSearchParamHybrid(radius=self.radius_normal, max_nn=30))
+            pcd_fpfh = o3d.registration.compute_fpfh_feature(pcd, o3d.geometry.KDTreeSearchParamHybrid(radius=self.radius_feature, max_nn=100))
+            res[i] = pcd_fpfh.data
+
+        res = torch.from_numpy(res).float().cuda()
+        return res
+
+
+class Conv1DBNReLU(nn.Module):
+    def __init__(self, in_channel, out_channel, ksize):
+        super(Conv1DBNReLU, self).__init__()
+        self.conv = nn.Conv1d(in_channel, out_channel, ksize, bias=False)
+        self.bn = nn.BatchNorm1d(out_channel)
+        self.relu = nn.ReLU()
+
+    def forward(self, x):
+        x = self.conv(x)
+        x = self.bn(x)
+        x = self.relu(x)
+        return x
+
+
+class Conv1DBlock(nn.Module):
+    def __init__(self, channels, ksize):
+        super(Conv1DBlock, self).__init__()
+        self.conv = nn.ModuleList()
+        for i in range(len(channels)-2):
+            self.conv.append(Conv1DBNReLU(channels[i], channels[i+1], ksize))
+        self.conv.append(nn.Conv1d(channels[-2], channels[-1], ksize))
+
+    def forward(self, x):
+        for conv in self.conv:
+            x = conv(x)
+        return x
+
+
+class Conv2DBNReLU(nn.Module):
+    def __init__(self, in_channel, out_channel, ksize):
+        super(Conv2DBNReLU, self).__init__()
+        self.conv = nn.Conv2d(in_channel, out_channel, ksize, bias=False)
+        self.bn = nn.BatchNorm2d(out_channel)
+        self.relu = nn.ReLU()
+
+    def forward(self, x):
+        x = self.conv(x)
+        x = self.bn(x)
+        x = self.relu(x)
+        return x
+
+
+class Conv2DBlock(nn.Module):
+    def __init__(self, channels, ksize):
+        super(Conv2DBlock, self).__init__()
+        self.conv = nn.ModuleList()
+        for i in range(len(channels)-2):
+            self.conv.append(Conv2DBNReLU(channels[i], channels[i+1], ksize))
+        self.conv.append(nn.Conv2d(channels[-2], channels[-1], ksize))
+
+    def forward(self, x):
+        for conv in self.conv:
+            x = conv(x)
+        return x
 
 
 class Propagate(nn.Module):
@@ -51,6 +147,45 @@ class GNN(nn.Module):
         x = self.propogate5(x, nn_idx)
 
         return x
+
+
+class SVDHead(nn.Module):
+    def __init__(self, args):
+        super(SVDHead, self).__init__()
+        self.emb_dims = 33 if args.use_fpfh else args.descriptor_size
+        self.reflect = nn.Parameter(torch.eye(3), requires_grad=False)
+        self.reflect[2, 2] = -1
+
+    def forward(self, src, src_corr, weights):
+        src_centered = src - src.mean(dim=2, keepdim=True)
+        src_corr_centered = src_corr - src_corr.mean(dim=2, keepdim=True)
+
+        H = torch.matmul(src_centered * weights, src_corr_centered.transpose(2, 1).contiguous())
+
+        U, S, V = [], [], []
+        R = []
+
+        for i in range(src.size(0)):
+            u, s, v = torch.svd(H[i])
+            r = torch.matmul(v, u.transpose(1, 0).contiguous())
+            r_det = torch.det(r)
+            if r_det < 0:
+                u, s, v = torch.svd(H[i])
+                v = torch.matmul(v, self.reflect)
+                r = torch.matmul(v, u.transpose(1, 0).contiguous())
+            R.append(r)
+
+            U.append(u)
+            S.append(s)
+            V.append(v)
+
+        U = torch.stack(U, dim=0)
+        V = torch.stack(V, dim=0)
+        S = torch.stack(S, dim=0)
+        R = torch.stack(R, dim=0)
+
+        t = torch.matmul(-R, (weights * src).sum(dim=2, keepdim=True)) + (weights * src_corr).sum(dim=2, keepdim=True)
+        return R, t.view(src.size(0), 3)
 
 
 class Model(nn.Module):
