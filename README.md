@@ -5,6 +5,7 @@
 
 
 ## [NEWS]
+- **2021-07-12 [NEW:tada:]** Submissions on the [Codalab](https://competitions.codalab.org/competitions/33430) start!
 - **2021-07-10 [NEW:tada:]** [Database website](https://mvp-dataset.github.io) and [Challenge website](https://competitions.codalab.org/competitions/33430) are online!
 - **2021-07-09 [NEW:tada:]** Code and data released!
 - **2021-07-01** The MVP challenges will be hosted in the **ICCV2021 Workshop**: ***[Sensing, Understanding and Synthesizing Humans](https://sense-human.github.io/)***.
