@@ -10,6 +10,13 @@
 - **2021-07-09 [NEW:tada:]** Code and data released!
 - **2021-07-01** The MVP challenges will be hosted in the **ICCV2021 Workshop**: ***[Sensing, Understanding and Synthesizing Humans](https://sense-human.github.io/)***.
 
+## [Timeline]
+- ~~**2021-07-12**  Submission start date~~
+- **2021-09-12**  Public submission deadline
+- **2021-09-19**  Private submission deadline
+- **2021-10-04**  Technical report deadline
+- **2021-10-17**  Awards at ICCV2021 Workshop
+
 
 ## [MVP Benchmark]
 
