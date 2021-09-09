@@ -1,4 +1,7 @@
 # *MVP Benchmark:* Multi-View Partial Point Clouds for Completion and Registration
+
+[[Website]](https://mvp-dataset.github.io/)
+
 <p align="center"> 
 <img src="images/logo.png">
 </p>
@@ -8,7 +11,7 @@
 - **2021-07-12 [NEW:tada:]** The submission on [Codalab](https://competitions.codalab.org/competitions/33430) starts!
 - **2021-07-10 [NEW:tada:]** [Database website](https://mvp-dataset.github.io) and [Challenge website](https://competitions.codalab.org/competitions/33430) are online!
 - **2021-07-09 [NEW:tada:]** Code and data released!
-- **2021-07-01** The MVP challenges will be hosted in the **ICCV2021 Workshop**: ***[Sensing, Understanding and Synthesizing Humans](https://sense-human.github.io/)***.
+- **2021** The MVP challenges will be hosted in the **ICCV2021 Workshop**: ***[Sensing, Understanding and Synthesizing Humans](https://sense-human.github.io/)***.
 
 ## [Timeline]
 - ~~**2021-07-12**&nbsp;&nbsp;  Submission start date~~
