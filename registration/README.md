@@ -43,6 +43,7 @@ data
      ├── rotated_tgt (2000, 2048, 3)
      └── cat_label (2000,)
 ```
+**Attention**: `MVP_ExtraTest_Shuffled_RG.h5` is only available during the competition period. `MVP_Test_RG.h5` is the standard test set if you use MVP dataset in your papers.
 
 We create the registration dataset by ensuring surfficent overlaps between the source point cloud and the target.
 Partial point cloud pairs with "match_level = 1" mostly have more correspondences than those with "match_level = 0".
