@@ -17,10 +17,10 @@
 
 ## [Timeline]
 - ~~**2021-07-12**&nbsp;&nbsp;  Submission start date~~
-- ~~**2021-09-12**&nbsp;&nbsp;  Public submission deadline
-- ~~**2021-09-19**&nbsp;&nbsp;  Private submission deadline
-- ~~**2021-10-04**&nbsp;&nbsp;  Technical report deadline
-- ~~**2021-10-17**&nbsp;&nbsp;  Awards at ICCV2021 Workshop
+- ~~**2021-09-12**&nbsp;&nbsp;  Public submission deadline~~
+- ~~**2021-09-19**&nbsp;&nbsp;  Private submission deadline~~
+- ~~**2021-10-04**&nbsp;&nbsp;  Technical report deadline~~
+- ~~**2021-10-17**&nbsp;&nbsp;  Awards at ICCV2021 Workshop~~
 
 
 ## [MVP Benchmark]
