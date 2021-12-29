@@ -8,17 +8,19 @@
 
 
 ## [NEWS]
-- **2021-07-12 [NEW:tada:]** The submission on [Codalab](https://competitions.codalab.org/competitions/33430) starts!
-- **2021-07-10 [NEW:tada:]** [Database website](https://mvp-dataset.github.io) and [Challenge website](https://competitions.codalab.org/competitions/33430) are online!
-- **2021-07-09 [NEW:tada:]** Code and data released!
+- **2021-12-22 [NEW:tada:]** The workshop report is avaliable at [Arxiv](https://arxiv.org/pdf/2112.12053.pdf)!
+- **2021-10-17 [NEW:tada:]** Awards at ICCV2021 Workshop. Congradulations to all the winner teams!
+- **2021-07-12** The submission on [Codalab](https://competitions.codalab.org/competitions/33430) starts!
+- **2021-07-10** [Database website](https://mvp-dataset.github.io) and [Challenge website](https://competitions.codalab.org/competitions/33430) are online!
+- **2021-07-09** Code and data released!
 - **2021** The MVP challenges will be hosted in the **ICCV2021 Workshop**: ***[Sensing, Understanding and Synthesizing Humans](https://sense-human.github.io/)***.
 
 ## [Timeline]
 - ~~**2021-07-12**&nbsp;&nbsp;  Submission start date~~
-- **2021-09-12**&nbsp;&nbsp;  Public submission deadline
-- **2021-09-19**&nbsp;&nbsp;  Private submission deadline
-- **2021-10-04**&nbsp;&nbsp;  Technical report deadline
-- **2021-10-17**&nbsp;&nbsp;  Awards at ICCV2021 Workshop
+- ~~**2021-09-12**&nbsp;&nbsp;  Public submission deadline
+- ~~**2021-09-19**&nbsp;&nbsp;  Private submission deadline
+- ~~**2021-10-04**&nbsp;&nbsp;  Technical report deadline
+- ~~**2021-10-17**&nbsp;&nbsp;  Awards at ICCV2021 Workshop
 
 
 ## [MVP Benchmark]
