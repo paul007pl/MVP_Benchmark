@@ -83,6 +83,18 @@ If you find our code useful, please cite our paper:
   journal={arXiv preprint arXiv:2104.10154},
   year={2021}
 }
+@article{pan2021robust,
+  title={Robust Partial-to-Partial Point Cloud Registration in a Full Range},
+  author={Pan, Liang and Cai, Zhongang and Liu, Ziwei},
+  journal={arXiv preprint arXiv:2111.15606},
+  year={2021}
+}
+@article{pan2021mvp, 
+  title={Multi-View Partial (MVP) Point Cloud Challenge 2021 on Completion and Registration: Methods and Results}, 
+  author={Pan, Liang and Wu, Tong and Cai, Zhongang and Liu, Ziwei and Yu, Xumin and Rao, Yongming and Lu, Jiwen and Zhou, Jie and Xu, Mingye and Luo, Xiaoyuan and Fu, Kexue, and Gao, Peng, and Wang, Manning, and Wang, Yali, and Qiao, Yu, and Zhou, Junsheng, and Wen, Xin, and Xiang, Peng, and Liu, Yu-Shen, and Han, Zhizhong, and Yan, Yuanjie, and An, Junyi, and Zhu, Lifa, and Lin, Changwei, and Liu, Dongrui, and Li, Xin, and G ́omez-Fern ́andez, Francisco, and Wang, Qinlong, and Yang, Yang}, 
+  journal={arXiv preprint arXiv:2112.12053},
+  year={2021}
+}
 ```
 
 <br>
