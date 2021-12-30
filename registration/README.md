@@ -64,10 +64,11 @@ Note that the source and the target are two different incomplete point clouds sc
 ## Citation
 If you find our code useful, please cite our paper:
 ```bibtex
-@article{pan2021variational,
+@inproceedings{pan2021variational,
   title={Variational Relational Point Completion Network},
   author={Pan, Liang and Chen, Xinyi and Cai, Zhongang and Zhang, Junzhe and Zhao, Haiyu and Yi, Shuai and Liu, Ziwei},
-  journal={arXiv preprint arXiv:2104.10154},
+  booktitle={Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition},
+  pages={8524--8533},
   year={2021}
 }
 @article{pan2021robust,
